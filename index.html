@@ -4,8 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Human Test Center | Actividades</title>
-
+  <title>Human Test Center | Sistema de Actividades</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -25,8 +24,11 @@
       text-align: center;
     }
 
+    header h1 { margin: 0 0 8px; }
+    header p { margin: 0; }
+
     main {
-      max-width: 950px;
+      max-width: 1000px;
       margin: 25px auto;
       padding: 20px;
     }
@@ -87,7 +89,7 @@
       color: white;
     }
 
-    .hidden {
+    .hidden, [hidden] {
       display: none !important;
     }
 
@@ -97,9 +99,7 @@
       gap: 0 18px;
     }
 
-    .full {
-      grid-column: 1 / -1;
-    }
+    .full { grid-column: 1 / -1; }
 
     .activity {
       border: 1px solid #dbe3ed;
@@ -107,6 +107,7 @@
       padding: 14px;
       margin-top: 12px;
       overflow-wrap: anywhere;
+      break-inside: avoid;
     }
 
     .muted {
@@ -114,77 +115,50 @@
       font-size: 14px;
     }
 
-    .status {
-      display: inline-block;
-      padding: 4px 9px;
-      background: #e2e8f0;
-      border-radius: 12px;
-      font-size: 13px;
-    }
-
     #mensaje, #formMessage {
       overflow-wrap: anywhere;
     }
 
     @media (max-width: 600px) {
-      main {
-        padding: 12px;
-      }
-
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .full {
-        grid-column: auto;
-      }
-
-      header {
-        padding: 16px;
-      }
-
-      .panel {
-        padding: 16px;
-      }
+      main { padding: 12px; }
+      .grid { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
     }
 
     @media print {
-      body {
-        background: white;
-      }
+      body { background: white; color: black; }
 
       header {
-        background: white;
-        color: black;
-        border-bottom: 2px solid #12345a;
-      }
-
-      #loginPanel,
-      #activityFormPanel,
-      #sessionPanel,
-      #reportControls,
-      #mensaje,
-      #formMessage,
-      #printBtn,
-      #refreshBtn {
-        display: none !important;
+        background: white !important;
+        color: black !important;
+        padding: 0 0 12px;
       }
 
       main {
-        max-width: 100%;
+        max-width: none;
         margin: 0;
         padding: 0;
       }
 
-      .panel {
-        box-shadow: none;
-        border: none;
-        padding: 5px;
+      #loginPanel,
+      #activityFormPanel,
+      #userPanel,
+      #reportControls,
+      #refreshBtn,
+      #printBtn,
+      #logoutBtn,
+      #mensaje,
+      #formMessage {
+        display: none !important;
       }
 
-      .activity {
-        break-inside: avoid;
+      .panel {
+        box-shadow: none;
+        border: 0;
+        padding: 0;
       }
+
+      .activity { border: 1px solid #999; }
     }
   </style>
 </head>
@@ -226,15 +200,14 @@
     <!-- APLICACIÓN -->
     <section id="appPanel" class="hidden">
 
-      <div id="sessionPanel" class="panel">
+      <div id="userPanel" class="panel">
         <div id="usuarioInfo"></div>
-
         <button id="logoutBtn" class="logout" type="button">
           Cerrar sesión
         </button>
       </div>
 
-      <!-- REGISTRO DE ACTIVIDADES -->
+      <!-- REGISTRO DE ACTIVIDADES: ADMINISTRADOR Y EMPLEADOS -->
       <div id="activityFormPanel" class="panel">
         <h2>Registrar actividad</h2>
 
@@ -258,12 +231,7 @@
 
             <div class="full">
               <label for="title">Título de la actividad</label>
-              <input
-                id="title"
-                type="text"
-                maxlength="200"
-                required
-              >
+              <input id="title" type="text" maxlength="200" required>
             </div>
 
             <div class="full">
@@ -286,7 +254,7 @@
               <label for="status">Estado</label>
               <select id="status" required>
                 <option value="Pendiente">Pendiente</option>
-                <option value="En proceso" selected>En proceso</option>
+                <option value="En proceso">En proceso</option>
                 <option value="Completada">Completada</option>
               </select>
             </div>
@@ -306,9 +274,12 @@
         <p id="formMessage" role="status" aria-live="polite"></p>
       </div>
 
-      <!-- REPORTE SEMANAL -->
-      <div class="panel">
+      <!-- REPORTES GENERALES: SOLO ADMINISTRADOR -->
+      <section id="adminReportsPanel" class="panel hidden">
         <h2>Reportes semanales por departamento</h2>
+        <p class="muted">
+          Sección exclusiva para administradores.
+        </p>
 
         <div id="reportControls" class="grid">
           <div>
@@ -334,17 +305,14 @@
         </button>
 
         <div id="activityList" aria-live="polite"></div>
-      </div>
+      </section>
     </section>
 
     <p id="mensaje" role="status" aria-live="polite"></p>
   </main>
 
   <script>
-    // ==========================================
     // CONFIGURACIÓN DE SUPABASE
-    // ==========================================
-
     const SUPABASE_URL =
       "https://qzsyejizsjgubitzrdsj.supabase.co";
 
@@ -362,104 +330,61 @@
     let profile = null;
     let departments = [];
 
-    // ==========================================
-    // FECHAS Y SEMANAS
-    // ==========================================
-
-    function localDate(date = new Date()) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-
-      return `${year}-${month}-${day}`;
+    function localDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     }
 
-    function localDateUTC(date) {
-      return [
-        date.getUTCFullYear(),
-        String(date.getUTCMonth() + 1).padStart(2, "0"),
-        String(date.getUTCDate()).padStart(2, "0")
-      ].join("-");
-    }
-
-    function getISOWeekValue(date = new Date()) {
+    function getISOWeekValue(date) {
       const d = new Date(Date.UTC(
         date.getFullYear(),
         date.getMonth(),
         date.getDate()
       ));
 
-      d.setUTCDate(
-        d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + 3
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+
+      const yearStart = new Date(Date.UTC(
+        d.getUTCFullYear(), 0, 1
+      ));
+
+      const week = Math.ceil(
+        (((d - yearStart) / 86400000) + 1) / 7
       );
 
-      const year = d.getUTCFullYear();
-      const jan4 = new Date(Date.UTC(year, 0, 4));
-
-      jan4.setUTCDate(
-        jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7) + 3
-      );
-
-      const week = 1 + Math.round(
-        (d.getTime() - jan4.getTime()) / 604800000
-      );
-
-      return `${year}-W${String(week).padStart(2, "0")}`;
+      return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
     }
 
-    function getWeekRange(value) {
-      const match = /^(\d{4})-W(\d{2})$/.exec(value || "");
+    function getWeekRange(weekValue) {
+      if (!weekValue || !/^\d{4}-W\d{2}$/.test(weekValue)) {
+        return null;
+      }
 
-      if (!match) return null;
-
-      const year = Number(match[1]);
-      const week = Number(match[2]);
+      const [yearText, weekText] = weekValue.split("-W");
+      const year = Number(yearText);
+      const week = Number(weekText);
 
       if (week < 1 || week > 53) return null;
 
       const jan4 = new Date(Date.UTC(year, 0, 4));
+      const day = jan4.getUTCDay() || 7;
       const monday = new Date(jan4);
 
       monday.setUTCDate(
-        jan4.getUTCDate() -
-        ((jan4.getUTCDay() + 6) % 7) +
-        (week - 1) * 7
+        jan4.getUTCDate() - day + 1 + (week - 1) * 7
       );
-
-      // Validar la semana usando una fecha local construida
-      // con los componentes UTC, evitando desfases horarios.
-      const mondayLocal = new Date(
-        monday.getUTCFullYear(),
-        monday.getUTCMonth(),
-        monday.getUTCDate()
-      );
-
-      if (getISOWeekValue(mondayLocal) !== value) {
-        return null;
-      }
 
       const sunday = new Date(monday);
       sunday.setUTCDate(monday.getUTCDate() + 6);
 
-      return {
-        start: localDateUTC(monday),
-        end: localDateUTC(sunday)
-      };
+      const fmt = d =>
+        `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+
+      return [fmt(monday), fmt(sunday)];
     }
-
-    function formatDate(dateValue) {
-      if (!dateValue) return "Sin fecha";
-
-      const parts = dateValue.split("-");
-
-      if (parts.length !== 3) return dateValue;
-
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-
-    // ==========================================
-    // SEGURIDAD Y MENSAJES
-    // ==========================================
 
     function escapeHTML(value) {
       return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -471,12 +396,12 @@
       })[char]);
     }
 
-    function showMessage(message) {
-      $("mensaje").textContent = message;
+    function showMessage(text) {
+      $("mensaje").textContent = text;
     }
 
-    function showFormMessage(message) {
-      $("formMessage").textContent = message;
+    function showFormMessage(text) {
+      $("formMessage").textContent = text;
     }
 
     function showLoggedOut() {
@@ -486,289 +411,230 @@
 
       $("loginPanel").classList.remove("hidden");
       $("appPanel").classList.add("hidden");
+      $("adminReportsPanel").classList.add("hidden");
+      $("activityList").replaceChildren();
+      $("usuarioInfo").textContent = "";
+      showFormMessage("");
     }
 
-    // ==========================================
-    // DEPARTAMENTOS
-    // ==========================================
-
-    function configureDepartmentSelects() {
-      const isAdmin = profile.role === "admin";
-
-      const allowed = isAdmin
-        ? departments
-        : departments.filter(
-            dept =>
-              String(dept.id) === String(profile.department_id)
-          );
-
-      $("department").replaceChildren();
-
-      allowed.forEach(dept => {
-        $("department").add(
-          new Option(dept.name, dept.id)
-        );
-      });
-
-      $("department").disabled = !isAdmin;
-
-      $("reportDepartment").replaceChildren();
-
-      if (isAdmin) {
-        $("reportDepartment").add(
-          new Option("Todos los departamentos", "all")
-        );
-      }
-
-      allowed.forEach(dept => {
-        $("reportDepartment").add(
-          new Option(dept.name, dept.id)
-        );
-      });
-
-      $("reportWeek").value = getISOWeekValue();
-    }
-
-    // ==========================================
-    // INICIAR APLICACIÓN
-    // ==========================================
-
+    // CARGAR USUARIO, PERFIL Y PERMISOS DE INTERFAZ
     async function loadDashboard() {
-      const {
-        data: sessionData,
-        error: sessionError
-      } = await db.auth.getSession();
+      const { data: sessionData, error: sessionError } =
+        await db.auth.getSession();
 
-      if (sessionError) {
-        showLoggedOut();
-        showMessage("No se pudo comprobar la sesión.");
-        return;
-      }
-
-      if (!sessionData.session) {
+      if (sessionError || !sessionData.session) {
         showLoggedOut();
         return;
       }
 
       currentUser = sessionData.session.user;
 
-      const {
-        data: userProfile,
-        error: profileError
-      } = await db
+      const { data: userProfile, error: profileError } = await db
         .from("profiles")
         .select("id, full_name, department_id, role, active")
         .eq("id", currentUser.id)
         .maybeSingle();
 
-      if (
-        profileError ||
-        !userProfile ||
-        !userProfile.active
-      ) {
-        console.error("Error del perfil:", profileError);
-
+      if (profileError || !userProfile || !userProfile.active) {
+        await db.auth.signOut();
         showLoggedOut();
-
         showMessage(
-          "No se pudo validar tu perfil. Contacta al administrador."
+          "No se pudo validar tu perfil activo. Contacta al administrador."
         );
-
         return;
       }
 
       profile = userProfile;
 
-      const {
-        data: deptData,
-        error: deptError
-      } = await db
+      const { data: deptData, error: deptError } = await db
         .from("departments")
         .select("id, name")
-        .eq("active", true)
         .order("id");
 
       if (deptError || !deptData) {
-        console.error("Error de departamentos:", deptError);
-
         showMessage("No se pudieron cargar los departamentos.");
         return;
       }
 
       departments = deptData;
 
-      if (
-        profile.role !== "admin" &&
-        !departments.some(
-          dept =>
-            String(dept.id) === String(profile.department_id)
-        )
-      ) {
-        showMessage(
-          "Tu perfil no tiene un departamento activo asignado."
-        );
-
-        return;
-      }
-
       $("loginPanel").classList.add("hidden");
       $("appPanel").classList.remove("hidden");
 
+      const displayName =
+        profile.full_name?.trim() || currentUser.email;
+
       $("usuarioInfo").textContent =
-        `Usuario: ${profile.full_name?.trim() || currentUser.email} ` +
-        `(${currentUser.email}) · Rol: ${profile.role}`;
+        `Usuario: ${displayName} (${currentUser.email}) · Rol: ${profile.role}`;
 
-      configureDepartmentSelects();
+      // Empleados solo pueden seleccionar su propio departamento.
+      const departmentSelect = $("department");
+      departmentSelect.replaceChildren();
 
-      $("activityDate").value = localDate();
-      $("status").value = "En proceso";
+      const allowedDepartments = profile.role === "admin"
+        ? departments
+        : departments.filter(
+            d => String(d.id) === String(profile.department_id)
+          );
 
-      showMessage("");
+      allowedDepartments.forEach(dept => {
+        const option = document.createElement("option");
+        option.value = dept.id;
+        option.textContent = dept.name;
+        departmentSelect.appendChild(option);
+      });
 
-      await loadActivities();
-    }
-
-    // ==========================================
-    // CONSULTAR Y MOSTRAR REPORTES
-    // ==========================================
-
-    async function loadActivities() {
-      if (!currentUser || !profile) return;
-
-      const weekValue = $("reportWeek").value;
-      const departmentValue = $("reportDepartment").value;
-
-      $("reportCount").textContent = "";
-      $("activityList").replaceChildren();
-
-      const range = getWeekRange(weekValue);
-
-      if (!range) {
-        $("weekLabel").textContent = "";
-
-        $("activityList").textContent =
-          "Selecciona una semana válida para consultar.";
-
+      if (allowedDepartments.length === 0) {
+        showMessage(
+          "Tu perfil no tiene un departamento asignado. Contacta al administrador."
+        );
         return;
       }
 
-      $("weekLabel").textContent =
-        `Periodo del reporte: ${formatDate(range.start)} ` +
-        `al ${formatDate(range.end)}`;
+      departmentSelect.disabled = profile.role !== "admin";
+      departmentSelect.value = String(
+        profile.role === "admin"
+          ? allowedDepartments[0].id
+          : profile.department_id
+      );
 
-      $("activityList").textContent =
-        "Consultando actividades...";
+      $("activityDate").value = localDate(new Date());
+
+      // Ocultar por completo los reportes generales a empleados.
+      const isAdmin = profile.role === "admin";
+
+      $("adminReportsPanel").classList.toggle("hidden", !isAdmin);
+
+      if (isAdmin) {
+        $("reportWeek").value = getISOWeekValue(new Date());
+
+        const reportDepartment = $("reportDepartment");
+        reportDepartment.replaceChildren();
+
+        const allOption = document.createElement("option");
+        allOption.value = "all";
+        allOption.textContent = "Todos los departamentos";
+        reportDepartment.appendChild(allOption);
+
+        departments.forEach(dept => {
+          const option = document.createElement("option");
+          option.value = dept.id;
+          option.textContent = dept.name;
+          reportDepartment.appendChild(option);
+        });
+
+        await loadActivities();
+      } else {
+        $("activityList").replaceChildren();
+        $("reportCount").textContent = "";
+        $("weekLabel").textContent = "";
+      }
+
+      showMessage("");
+    }
+
+    // REPORTE SEMANAL EXCLUSIVO DEL ADMINISTRADOR
+    async function loadActivities() {
+      if (!profile || profile.role !== "admin") {
+        $("activityList").replaceChildren();
+        return;
+      }
+
+      const range = getWeekRange($("reportWeek").value);
+
+      if (!range) {
+        showMessage("Selecciona una semana válida.");
+        return;
+      }
+
+      const [startDate, endDate] = range;
+
+      $("weekLabel").textContent =
+        `Semana: ${startDate} al ${endDate}`;
+
+      $("activityList").textContent = "Cargando actividades...";
+      $("reportCount").textContent = "";
 
       let query = db
         .from("activities")
-        .select(
-          "id, user_id, department_id, title, activity_date, " +
-          "activity_time, description, deadline_met, observations, status"
-        )
-        .gte("activity_date", range.start)
-        .lte("activity_date", range.end)
+        .select(`
+          id,
+          user_id,
+          department_id,
+          title,
+          activity_date,
+          activity_time,
+          description,
+          deadline_met,
+          observations,
+          status
+        `)
+        .gte("activity_date", startDate)
+        .lte("activity_date", endDate)
         .order("activity_date", { ascending: false })
         .order("activity_time", { ascending: false });
 
-      // Administrador: puede seleccionar departamentos.
-      if (profile.role === "admin") {
-        if (departmentValue !== "all") {
-          query = query.eq(
-            "department_id",
-            Number(departmentValue)
-          );
-        }
-      } else {
-        // Usuario normal: limitar al departamento asignado.
+      const selectedDepartment = $("reportDepartment").value;
+
+      if (selectedDepartment !== "all") {
         query = query.eq(
           "department_id",
-          Number(profile.department_id)
+          Number(selectedDepartment)
         );
       }
 
-      const {
-        data,
-        error
-      } = await query;
+      const { data, error } = await query;
 
       if (error) {
-        console.error("Error del reporte:", error);
-
         $("activityList").textContent =
-          "Error al consultar el reporte: " + error.message;
-
+          "No se pudieron cargar los reportes. Verifica los permisos de Supabase.";
+        $("reportCount").textContent = "";
+        console.error("Error al consultar reportes:", error);
         return;
       }
 
-      const activities = data || [];
-
-      $("reportCount").textContent =
-        `Actividades encontradas: ${activities.length}`;
-
-      if (activities.length === 0) {
+      if (!data || data.length === 0) {
         $("activityList").textContent =
-          "No se encontraron actividades en esta semana y departamento. " +
-          "Verifica la fecha registrada y el filtro seleccionado.";
-
+          "No hay actividades registradas para esta semana y departamento.";
+        $("reportCount").textContent = "Total de actividades: 0";
         return;
       }
 
-      // ========================================
-      // NUEVO: CONSULTAR NOMBRES DE EMPLEADOS
-      // ========================================
-
+      // Obtener nombres de los empleados relacionados con las actividades.
       const userIds = [
-        ...new Set(
-          activities
-            .map(activity => activity.user_id)
-            .filter(Boolean)
-        )
+        ...new Set(data.map(a => a.user_id).filter(Boolean))
       ];
 
       let employeeNames = {};
 
       if (userIds.length > 0) {
-        const {
-          data: profileData,
-          error: profileError
-        } = await db
+        const { data: profilesData, error: namesError } = await db
           .from("profiles")
           .select("id, full_name")
           .in("id", userIds);
 
-        if (profileError) {
-          console.error(
-            "Error al consultar nombres de empleados:",
-            profileError
-          );
-        } else {
+        if (!namesError && profilesData) {
           employeeNames = Object.fromEntries(
-            (profileData || []).map(person => [
-              person.id,
-              person.full_name
-            ])
+            profilesData.map(p => [p.id, p.full_name])
+          );
+        } else if (namesError) {
+          console.warn(
+            "No se pudieron consultar algunos nombres de empleados:",
+            namesError
           );
         }
       }
 
-      // ========================================
-      // MOSTRAR ACTIVIDADES CON EMPLEADO Y ÁREA
-      // ========================================
+      $("reportCount").textContent =
+        `Total de actividades: ${data.length}`;
 
-      $("activityList").innerHTML = activities.map(activity => {
+      $("activityList").innerHTML = data.map(activity => {
         const dept = departments.find(
-          department =>
-            String(department.id) ===
-            String(activity.department_id)
+          d => String(d.id) === String(activity.department_id)
         );
 
-        const departmentName =
-          dept?.name || "Departamento no identificado";
-
-        const savedName = employeeNames[activity.user_id];
-
         const employeeName =
-          savedName?.trim() ||
+          employeeNames[activity.user_id]?.trim() ||
           (
             activity.user_id === currentUser.id
               ? (profile.full_name?.trim() || currentUser.email)
@@ -793,12 +659,9 @@
 
             <p class="muted">
               <strong>Departamento:</strong>
-              ${escapeHTML(departmentName)}
-            </p>
-
-            <p class="muted">
-              <strong>Fecha:</strong>
-              ${escapeHTML(formatDate(activity.activity_date))}
+              ${escapeHTML(dept?.name || "No registrado")}
+              · <strong>Fecha:</strong>
+              ${escapeHTML(activity.activity_date)}
               ${
                 activity.activity_time
                   ? " · <strong>Hora:</strong> " +
@@ -808,15 +671,13 @@
             </p>
 
             <p>
-              <strong>Descripción:</strong><br>
+              <strong>Descripción:</strong>
               ${escapeHTML(activity.description)}
             </p>
 
             <p>
               <strong>Estado:</strong>
-              <span class="status">
-                ${escapeHTML(activity.status)}
-              </span>
+              ${escapeHTML(activity.status)}
             </p>
 
             <p>
@@ -833,10 +694,7 @@
       }).join("");
     }
 
-    // ==========================================
-    // INICIAR SESIÓN
-    // ==========================================
-
+    // INICIO DE SESIÓN
     $("loginForm").addEventListener("submit", async event => {
       event.preventDefault();
 
@@ -853,26 +711,19 @@
           showMessage(
             "No se pudo iniciar sesión. Comprueba tus credenciales."
           );
-
           return;
         }
 
         await loadDashboard();
-
       } catch (error) {
         console.error(error);
-
         showMessage("No se pudo conectar con Supabase.");
-
       } finally {
         $("loginBtn").disabled = false;
       }
     });
 
-    // ==========================================
     // GUARDAR ACTIVIDAD
-    // ==========================================
-
     $("activityForm").addEventListener("submit", async event => {
       event.preventDefault();
 
@@ -882,12 +733,6 @@
       }
 
       const departmentId = Number($("department").value);
-      const activityDate = $("activityDate").value;
-
-      if (!activityDate) {
-        showFormMessage("Selecciona la fecha de la actividad.");
-        return;
-      }
 
       if (
         profile.role !== "admin" &&
@@ -896,7 +741,17 @@
         showFormMessage(
           "No puedes registrar actividades en otro departamento."
         );
+        return;
+      }
 
+      if (
+        !$("activityDate").value ||
+        !$("title").value.trim() ||
+        !$("description").value.trim()
+      ) {
+        showFormMessage(
+          "Completa la fecha, el título y la descripción."
+        );
         return;
       }
 
@@ -910,7 +765,7 @@
           user_id: currentUser.id,
           department_id: departmentId,
           title: $("title").value.trim(),
-          activity_date: activityDate,
+          activity_date: $("activityDate").value,
           activity_time: $("activityTime").value || null,
           description: $("description").value.trim(),
           deadline_met:
@@ -918,7 +773,8 @@
               ? null
               : deadlineValue === "true",
           observations: $("observations").value.trim(),
-          status: $("status").value
+          status: $("status").value,
+          updated_at: new Date().toISOString()
         };
 
         const { error } = await db
@@ -926,114 +782,83 @@
           .insert(activity);
 
         if (error) {
-          console.error("Error al guardar:", error);
-
+          console.error("Error al guardar actividad:", error);
           showFormMessage(
-            "No se pudo guardar: " + error.message
+            "No se pudo guardar la actividad. Verifica los permisos de Supabase."
           );
-
           return;
         }
 
         showFormMessage("Actividad guardada correctamente.");
 
-        $("title").value = "";
-        $("description").value = "";
-        $("activityTime").value = "";
-        $("deadline").value = "";
+        $("activityForm").reset();
+        $("activityDate").value = localDate(new Date());
         $("status").value = "En proceso";
-        $("observations").value = "";
 
-        // Abrir automáticamente la semana de la actividad.
-        const savedDate = new Date(
-          activityDate + "T12:00:00"
-        );
-
-        $("reportWeek").value = getISOWeekValue(savedDate);
-
-        // Si es administrador, mostrar el departamento registrado.
-        if (profile.role === "admin") {
-          $("reportDepartment").value =
-            String(departmentId);
+        if (profile.role !== "admin") {
+          $("department").value = String(profile.department_id);
         }
 
-        await loadActivities();
-
+        if (profile.role === "admin") {
+          await loadActivities();
+        }
       } catch (error) {
         console.error(error);
-
         showFormMessage(
           "Ocurrió un error al guardar la actividad."
         );
-
       } finally {
         $("saveBtn").disabled = false;
       }
     });
 
-    // ==========================================
-    // FILTROS, IMPRESIÓN Y ACTUALIZACIÓN
-    // ==========================================
+    // CONTROLES DEL REPORTE: ADMINISTRADOR
+    $("refreshBtn").addEventListener("click", () => {
+      if (profile?.role === "admin") loadActivities();
+    });
 
-    $("refreshBtn").addEventListener(
-      "click",
-      loadActivities
-    );
+    $("reportWeek").addEventListener("change", () => {
+      if (profile?.role === "admin") loadActivities();
+    });
 
-    $("reportWeek").addEventListener(
-      "change",
-      loadActivities
-    );
-
-    $("reportDepartment").addEventListener(
-      "change",
-      loadActivities
-    );
+    $("reportDepartment").addEventListener("change", () => {
+      if (profile?.role === "admin") loadActivities();
+    });
 
     $("printBtn").addEventListener("click", () => {
+      if (profile?.role !== "admin") {
+        showMessage(
+          "Solo el administrador puede imprimir los reportes generales."
+        );
+        return;
+      }
+
       window.print();
     });
 
-    // ==========================================
     // CERRAR SESIÓN
-    // ==========================================
-
     $("logoutBtn").addEventListener("click", async () => {
-      $("logoutBtn").disabled = true;
+      const { error } = await db.auth.signOut();
 
-      try {
-        const { error } = await db.auth.signOut();
+      if (error) {
+        showMessage("No se pudo cerrar la sesión.");
+        return;
+      }
 
-        if (error) {
-          showMessage("No se pudo cerrar la sesión.");
-          return;
-        }
+      showLoggedOut();
+      showMessage("Sesión cerrada.");
+    });
 
+    // RECUPERAR SESIÓN EXISTENTE Y CARGAR APLICACIÓN
+    db.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
         showLoggedOut();
-        showMessage("Sesión cerrada.");
-
-      } catch (error) {
-        console.error(error);
-
-        showMessage(
-          "Ocurrió un error al cerrar sesión."
-        );
-
-      } finally {
-        $("logoutBtn").disabled = false;
       }
     });
 
-    // ==========================================
-    // CARGA INICIAL
-    // ==========================================
-
     loadDashboard().catch(error => {
       console.error(error);
-
-      showMessage(
-        "Ocurrió un error al iniciar la aplicación."
-      );
+      showMessage("Ocurrió un error al iniciar la aplicación.");
     });
   </script>
 </body>
