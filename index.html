@@ -171,14 +171,31 @@
         <p id="formMessage" role="status" aria-live="polite"></p>
       </div>
 
-      <div class="panel">
-        <h2>Actividades de esta semana</h2>
-        <p id="weekLabel" class="muted"></p>
-        <button id="refreshBtn" class="secondary" type="button">
-          Actualizar lista
-        </button>
-        <div id="activityList"></div>
-      </div>
+     <div class="panel">
+  <h2>Reportes semanales por departamento</h2>
+
+  <div class="grid">
+    <div>
+      <label for="reportWeek">Semana del reporte</label>
+      <input id="reportWeek" type="week" required>
+    </div>
+
+    <div>
+      <label for="reportDepartment">Departamento</label>
+      <select id="reportDepartment">
+        <option value="all">Todos los departamentos</option>
+      </select>
+    </div>
+  </div>
+
+  <p id="weekLabel" class="muted"></p>
+
+  <button id="refreshBtn" class="primary" type="button">
+    Consultar reporte
+  </button>
+
+  <div id="activityList"></div>
+</div>
     </section>
 
     <p id="mensaje" role="status" aria-live="polite"></p>
