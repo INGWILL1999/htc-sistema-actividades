@@ -3,88 +3,83 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Human Test Center | Actividades</title>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
-      background: #f1f5f9;
       margin: 0;
+      background: #f1f5f9;
       color: #1e293b;
     }
-
     header {
       background: #12345a;
       color: white;
-      padding: 24px;
+      padding: 22px;
       text-align: center;
     }
-
     main {
-      box-sizing: border-box;
-      max-width: 430px;
-      margin: 35px auto;
-      padding: 24px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 18px #00000012;
+      max-width: 950px;
+      margin: 25px auto;
+      padding: 20px;
     }
-
+    .panel {
+      background: white;
+      padding: 22px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 12px #00000010;
+    }
     label {
       display: block;
-      margin-top: 16px;
       font-weight: bold;
+      margin: 14px 0 6px;
     }
-
-    input {
-      box-sizing: border-box;
+    input, select, textarea {
       width: 100%;
-      padding: 12px;
-      margin-top: 7px;
+      padding: 11px;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
+      font: inherit;
     }
-
+    textarea { min-height: 90px; resize: vertical; }
     button {
-      padding: 12px;
       border: 0;
       border-radius: 6px;
-      cursor: pointer;
+      padding: 12px 16px;
       margin-top: 14px;
+      cursor: pointer;
+      font-weight: bold;
     }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
+    button:disabled { opacity: .6; cursor: wait; }
+    .primary { background: #1768ac; color: white; }
+    .secondary { background: #e2e8f0; color: #1e293b; }
+    .logout { background: #b91c1c; color: white; }
+    .hidden { display: none !important; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 18px;
     }
-
-    .principal {
-      width: 100%;
-      color: white;
-      background: #1768ac;
-    }
-
-    .secundario {
-      width: 100%;
-      background: #e2e8f0;
-    }
-
-    #mensaje {
-      margin-top: 18px;
+    .full { grid-column: 1 / -1; }
+    .activity {
+      border: 1px solid #dbe3ed;
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 12px;
       overflow-wrap: anywhere;
     }
-
-    .nota {
-      color: #64748b;
-      font-size: 13px;
-      line-height: 1.5;
+    .muted { color: #64748b; font-size: 14px; }
+    #mensaje { overflow-wrap: anywhere; }
+    @media (max-width: 600px) {
+      main { padding: 12px; }
+      .grid { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
     }
   </style>
 </head>
-
 <body>
   <header>
     <h1>Human Test Center</h1>
@@ -92,160 +87,406 @@
   </header>
 
   <main>
-    <h2>Iniciar sesión</h2>
-    <p>Accede con tu cuenta de empleado.</p>
+    <section id="loginPanel" class="panel">
+      <h2>Iniciar sesión</h2>
+      <form id="loginForm">
+        <label for="email">Correo electrónico</label>
+        <input id="email" type="email" autocomplete="username" required>
 
-    <form id="loginForm">
-      <label for="email">Correo electrónico</label>
-      <input
-        id="email"
-        name="email"
-        type="email"
-        required
-        autocomplete="username"
-      >
+        <label for="password">Contraseña</label>
+        <input id="password" type="password"
+          autocomplete="current-password" required>
 
-      <label for="password">Contraseña</label>
-      <input
-        id="password"
-        name="password"
-        type="password"
-        required
-        autocomplete="current-password"
-      >
+        <button class="primary" id="loginBtn" type="submit">
+          Iniciar sesión
+        </button>
+      </form>
+    </section>
 
-      <button class="principal" id="loginBtn" type="submit">
-        Iniciar sesión
-      </button>
-    </form>
+    <section id="appPanel" class="hidden">
+      <div class="panel">
+        <div id="usuarioInfo"></div>
+        <button id="logoutBtn" class="logout" type="button">
+          Cerrar sesión
+        </button>
+      </div>
 
-    <button
-      class="secundario"
-      id="cerrarSesion"
-      type="button"
-      hidden
-    >
-      Cerrar sesión
-    </button>
+      <div class="panel">
+        <h2>Registrar actividad</h2>
+        <form id="activityForm">
+          <div class="grid">
+            <div class="full">
+              <label for="department">Departamento</label>
+              <select id="department" required></select>
+            </div>
 
-    <p id="mensaje" role="status" aria-live="polite">
-      Preparando conexión...
-    </p>
+            <div>
+              <label for="activityDate">Fecha</label>
+              <input id="activityDate" type="date" required>
+            </div>
 
-    <p class="nota">
-      El acceso depende de la configuración de autenticación
-      y de los permisos de Supabase.
-    </p>
+            <div>
+              <label for="activityTime">Hora (opcional)</label>
+              <input id="activityTime" type="time">
+            </div>
+
+            <div class="full">
+              <label for="title">Título de la actividad</label>
+              <input id="title" type="text" maxlength="200" required>
+            </div>
+
+            <div class="full">
+              <label for="description">Descripción del trabajo realizado</label>
+              <textarea id="description" required></textarea>
+            </div>
+
+            <div>
+              <label for="deadline">¿Se cumplió el plazo?</label>
+              <select id="deadline">
+                <option value="">Sin indicar</option>
+                <option value="true">Sí</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="status">Estado</label>
+              <select id="status" required>
+                <option value="Pendiente">Pendiente</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Completada">Completada</option>
+              </select>
+            </div>
+
+            <div class="full">
+              <label for="observations">Observaciones</label>
+              <textarea id="observations"></textarea>
+            </div>
+          </div>
+
+          <button id="saveBtn" class="primary" type="submit">
+            Guardar actividad
+          </button>
+        </form>
+        <p id="formMessage" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="panel">
+        <h2>Actividades de esta semana</h2>
+        <p id="weekLabel" class="muted"></p>
+        <button id="refreshBtn" class="secondary" type="button">
+          Actualizar lista
+        </button>
+        <div id="activityList"></div>
+      </div>
+    </section>
+
+    <p id="mensaje" role="status" aria-live="polite"></p>
   </main>
 
   <script>
     const SUPABASE_URL =
       "https://qzsyejizsjgubitzrdsj.supabase.co";
-
     const SUPABASE_KEY =
       "sb_publishable_b_aQlGzfTH_nitP5T5OwZg_zPwBPW-i";
 
     const db = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
+      SUPABASE_URL, SUPABASE_KEY
     );
 
-    const mensaje = document.getElementById("mensaje");
-    const formulario = document.getElementById("loginForm");
-    const botonLogin = document.getElementById("loginBtn");
-    const botonCerrar = document.getElementById("cerrarSesion");
+    const $ = id => document.getElementById(id);
+    let currentUser = null;
+    let profile = null;
+    let departments = [];
 
-    function mostrarMensaje(texto) {
-      mensaje.textContent = texto;
+    function localDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     }
 
-    async function actualizarSesion() {
-      const { data, error } = await db.auth.getSession();
+    function weekRange() {
+      const today = new Date();
+      const monday = new Date(today);
+      const day = (today.getDay() + 6) % 7;
+      monday.setDate(today.getDate() - day);
+      monday.setHours(0, 0, 0, 0);
 
-      if (error) {
-        mostrarMensaje("No se pudo consultar la sesión.");
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+
+      return [localDate(monday), localDate(sunday)];
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function showMessage(text) {
+      $("mensaje").textContent = text;
+    }
+
+    function showFormMessage(text) {
+      $("formMessage").textContent = text;
+    }
+
+    function showLoggedOut() {
+      currentUser = null;
+      profile = null;
+      $("loginPanel").classList.remove("hidden");
+      $("appPanel").classList.add("hidden");
+    }
+
+    async function loadDashboard() {
+      const { data: sessionData, error: sessionError } =
+        await db.auth.getSession();
+
+      if (sessionError || !sessionData.session) {
+        showLoggedOut();
         return;
       }
 
-      if (data.session) {
-        formulario.hidden = true;
-        botonCerrar.hidden = false;
+      currentUser = sessionData.session.user;
 
-        mostrarMensaje(
-          "Sesión iniciada: " +
-          data.session.user.email +
-          ". La conexión con Supabase funciona."
-        );
-      } else {
-        formulario.hidden = false;
-        botonCerrar.hidden = true;
+      const { data: userProfile, error: profileError } = await db
+        .from("profiles")
+        .select("id, full_name, department_id, role, active")
+        .eq("id", currentUser.id)
+        .maybeSingle();
 
-        mostrarMensaje(
-          "Conexión inicializada. Inicia sesión para continuar."
+      if (profileError || !userProfile || !userProfile.active) {
+        showLoggedOut();
+        showMessage(
+          "No se pudo validar tu perfil. Contacta al administrador."
         );
+        return;
       }
+
+      profile = userProfile;
+
+      const { data: deptData, error: deptError } = await db
+        .from("departments")
+        .select("id, name")
+        .order("id");
+
+      if (deptError || !deptData) {
+        showMessage("No se pudieron cargar los departamentos.");
+        return;
+      }
+
+      departments = deptData;
+
+      $("loginPanel").classList.add("hidden");
+      $("appPanel").classList.remove("hidden");
+
+      $("usuarioInfo").textContent =
+        `Usuario: ${profile.full_name} (${currentUser.email}) · ` +
+        `Rol: ${profile.role}`;
+
+      const departmentSelect = $("department");
+      departmentSelect.replaceChildren();
+
+      const allowedDepartments = profile.role === "admin"
+        ? departments
+        : departments.filter(
+            d => String(d.id) === String(profile.department_id)
+          );
+
+      allowedDepartments.forEach(dept => {
+        const option = document.createElement("option");
+        option.value = dept.id;
+        option.textContent = dept.name;
+        departmentSelect.appendChild(option);
+      });
+
+      if (allowedDepartments.length === 0) {
+        showMessage("Tu perfil no tiene un departamento asignado.");
+        return;
+      }
+
+      departmentSelect.disabled = profile.role !== "admin";
+      $("activityDate").value = localDate(new Date());
+
+      showMessage("");
+      await loadActivities();
     }
 
-    formulario.addEventListener("submit", async (event) => {
+    async function loadActivities() {
+      const [startDate, endDate] = weekRange();
+      $("weekLabel").textContent = `${startDate} al ${endDate}`;
+      $("activityList").textContent = "Cargando actividades...";
+
+      const { data, error } = await db
+        .from("activities")
+        .select("id, department_id, title, activity_date, activity_time, description, deadline_met, observations, status")
+        .gte("activity_date", startDate)
+        .lte("activity_date", endDate)
+        .order("activity_date", { ascending: false })
+        .order("activity_time", { ascending: false });
+
+      if (error) {
+        $("activityList").textContent =
+          "No se pudieron cargar las actividades. Verifica los permisos.";
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        $("activityList").textContent =
+          "Todavía no hay actividades registradas esta semana.";
+        return;
+      }
+
+      $("activityList").innerHTML = data.map(activity => {
+        const dept = departments.find(
+          d => String(d.id) === String(activity.department_id)
+        );
+        const deadline = activity.deadline_met === null
+          ? "Sin indicar"
+          : activity.deadline_met ? "Sí" : "No";
+
+        return `
+          <article class="activity">
+            <strong>${escapeHTML(activity.title)}</strong>
+            <p class="muted">
+              ${escapeHTML(dept?.name || "Departamento")}
+              · ${escapeHTML(activity.activity_date)}
+              ${activity.activity_time
+                ? " · " + escapeHTML(activity.activity_time)
+                : ""}
+            </p>
+            <p>${escapeHTML(activity.description)}</p>
+            <p><strong>Estado:</strong> ${escapeHTML(activity.status)}</p>
+            <p><strong>Plazo cumplido:</strong> ${deadline}</p>
+            <p><strong>Observaciones:</strong>
+              ${escapeHTML(activity.observations || "Ninguna")}
+            </p>
+          </article>
+        `;
+      }).join("");
+    }
+
+    $("loginForm").addEventListener("submit", async event => {
       event.preventDefault();
-
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-
-      botonLogin.disabled = true;
-      mostrarMensaje("Verificando credenciales...");
+      $("loginBtn").disabled = true;
+      showMessage("Verificando acceso...");
 
       try {
         const { error } = await db.auth.signInWithPassword({
-          email,
-          password
+          email: $("email").value.trim(),
+          password: $("password").value
         });
 
         if (error) {
-          mostrarMensaje(
-            "No se pudo iniciar sesión. Comprueba tu correo y contraseña."
+          showMessage(
+            "No se pudo iniciar sesión. Comprueba tus credenciales."
           );
           return;
         }
 
-        await actualizarSesion();
+        await loadDashboard();
       } catch (error) {
-        mostrarMensaje(
-          "No se pudo conectar con el servicio de autenticación."
-        );
+        showMessage("No se pudo conectar con Supabase.");
       } finally {
-        botonLogin.disabled = false;
+        $("loginBtn").disabled = false;
       }
     });
 
-    botonCerrar.addEventListener("click", async () => {
-      botonCerrar.disabled = true;
-      mostrarMensaje("Cerrando sesión...");
+    $("activityForm").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      if (!currentUser || !profile) {
+        showFormMessage("Inicia sesión nuevamente.");
+        return;
+      }
+
+      const departmentId = Number($("department").value);
+
+      if (
+        profile.role !== "admin" &&
+        departmentId !== Number(profile.department_id)
+      ) {
+        showFormMessage("No puedes registrar actividades en otro departamento.");
+        return;
+      }
+
+      $("saveBtn").disabled = true;
+      showFormMessage("Guardando actividad...");
 
       try {
-        const { error } = await db.auth.signOut();
+        const now = new Date().toISOString();
+        const deadlineValue = $("deadline").value;
+
+        const activity = {
+          id: crypto.randomUUID(),
+          user_id: currentUser.id,
+          department_id: departmentId,
+          title: $("title").value.trim(),
+          activity_date: $("activityDate").value,
+          activity_time: $("activityTime").value || null,
+          description: $("description").value.trim(),
+          deadline_met: deadlineValue === ""
+            ? null
+            : deadlineValue === "true",
+          observations: $("observations").value.trim(),
+          status: $("status").value,
+          created_at: now,
+          updated_at: now
+        };
+
+        const { error } = await db
+          .from("activities")
+          .insert(activity);
 
         if (error) {
-          mostrarMensaje("No se pudo cerrar la sesión.");
+          showFormMessage(
+            "No se pudo guardar la actividad. Revisa los campos y permisos."
+          );
+          console.error("Error de registro:", error);
           return;
         }
 
-        await actualizarSesion();
+        showFormMessage("Actividad guardada correctamente.");
+        $("title").value = "";
+        $("description").value = "";
+        $("activityTime").value = "";
+        $("deadline").value = "";
+        $("status").value = "En proceso";
+        $("observations").value = "";
+
+        await loadActivities();
       } catch (error) {
-        mostrarMensaje("Ocurrió un error al cerrar la sesión.");
+        showFormMessage("Ocurrió un error al guardar la actividad.");
+        console.error(error);
       } finally {
-        botonCerrar.disabled = false;
+        $("saveBtn").disabled = false;
       }
     });
 
-    db.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
-        actualizarSesion();
+    $("refreshBtn").addEventListener("click", loadActivities);
+
+    $("logoutBtn").addEventListener("click", async () => {
+      const { error } = await db.auth.signOut();
+
+      if (error) {
+        showMessage("No se pudo cerrar la sesión.");
+        return;
       }
+
+      showLoggedOut();
+      showMessage("Sesión cerrada.");
     });
 
-    actualizarSesion();
+    loadDashboard().catch(error => {
+      console.error(error);
+      showMessage("Ocurrió un error al iniciar la aplicación.");
+    });
   </script>
 </body>
 </html>
-
