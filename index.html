@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Human Test Center | Actividades</title>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -52,7 +53,10 @@
       font: inherit;
     }
 
-    textarea { min-height: 90px; resize: vertical; }
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
 
     button {
       border: 0;
@@ -63,11 +67,29 @@
       font-weight: bold;
     }
 
-    button:disabled { opacity: .6; cursor: wait; }
-    .primary { background: #1768ac; color: white; }
-    .secondary { background: #e2e8f0; color: #1e293b; }
-    .logout { background: #b91c1c; color: white; }
-    .hidden { display: none !important; }
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .primary {
+      background: #1768ac;
+      color: white;
+    }
+
+    .secondary {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+
+    .logout {
+      background: #b91c1c;
+      color: white;
+    }
+
+    .hidden {
+      display: none !important;
+    }
 
     .grid {
       display: grid;
@@ -75,7 +97,9 @@
       gap: 0 18px;
     }
 
-    .full { grid-column: 1 / -1; }
+    .full {
+      grid-column: 1 / -1;
+    }
 
     .activity {
       border: 1px solid #dbe3ed;
@@ -85,7 +109,11 @@
       overflow-wrap: anywhere;
     }
 
-    .muted { color: #64748b; font-size: 14px; }
+    .muted {
+      color: #64748b;
+      font-size: 14px;
+    }
+
     .status {
       display: inline-block;
       padding: 4px 9px;
@@ -94,29 +122,69 @@
       font-size: 13px;
     }
 
-    #mensaje, #formMessage { overflow-wrap: anywhere; }
+    #mensaje, #formMessage {
+      overflow-wrap: anywhere;
+    }
 
     @media (max-width: 600px) {
-      main { padding: 12px; }
-      .grid { grid-template-columns: 1fr; }
-      .full { grid-column: auto; }
+      main {
+        padding: 12px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .full {
+        grid-column: auto;
+      }
+
+      header {
+        padding: 16px;
+      }
+
+      .panel {
+        padding: 16px;
+      }
     }
 
     @media print {
-      body { background: white; }
+      body {
+        background: white;
+      }
+
       header {
         background: white;
         color: black;
         border-bottom: 2px solid #12345a;
       }
-      #loginPanel, #activityFormPanel, #sessionPanel,
-      #reportControls, #mensaje, #formMessage,
-      #printBtn, #refreshBtn {
+
+      #loginPanel,
+      #activityFormPanel,
+      #sessionPanel,
+      #reportControls,
+      #mensaje,
+      #formMessage,
+      #printBtn,
+      #refreshBtn {
         display: none !important;
       }
-      main { max-width: 100%; margin: 0; padding: 0; }
-      .panel { box-shadow: none; border: none; padding: 5px; }
-      .activity { break-inside: avoid; }
+
+      main {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      .panel {
+        box-shadow: none;
+        border: none;
+        padding: 5px;
+      }
+
+      .activity {
+        break-inside: avoid;
+      }
     }
   </style>
 </head>
@@ -128,15 +196,26 @@
   </header>
 
   <main>
+    <!-- INICIO DE SESIÓN -->
     <section id="loginPanel" class="panel">
       <h2>Iniciar sesión</h2>
+
       <form id="loginForm">
         <label for="email">Correo electrónico</label>
-        <input id="email" type="email" autocomplete="username" required>
+        <input
+          id="email"
+          type="email"
+          autocomplete="username"
+          required
+        >
 
         <label for="password">Contraseña</label>
-        <input id="password" type="password"
-               autocomplete="current-password" required>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        >
 
         <button class="primary" id="loginBtn" type="submit">
           Iniciar sesión
@@ -144,19 +223,24 @@
       </form>
     </section>
 
+    <!-- APLICACIÓN -->
     <section id="appPanel" class="hidden">
+
       <div id="sessionPanel" class="panel">
         <div id="usuarioInfo"></div>
+
         <button id="logoutBtn" class="logout" type="button">
           Cerrar sesión
         </button>
       </div>
 
+      <!-- REGISTRO DE ACTIVIDADES -->
       <div id="activityFormPanel" class="panel">
         <h2>Registrar actividad</h2>
 
         <form id="activityForm">
           <div class="grid">
+
             <div class="full">
               <label for="department">Departamento</label>
               <select id="department" required></select>
@@ -174,11 +258,18 @@
 
             <div class="full">
               <label for="title">Título de la actividad</label>
-              <input id="title" type="text" maxlength="200" required>
+              <input
+                id="title"
+                type="text"
+                maxlength="200"
+                required
+              >
             </div>
 
             <div class="full">
-              <label for="description">Descripción del trabajo realizado</label>
+              <label for="description">
+                Descripción del trabajo realizado
+              </label>
               <textarea id="description" required></textarea>
             </div>
 
@@ -204,15 +295,18 @@
               <label for="observations">Observaciones</label>
               <textarea id="observations"></textarea>
             </div>
+
           </div>
 
           <button id="saveBtn" class="primary" type="submit">
             Guardar actividad
           </button>
         </form>
+
         <p id="formMessage" role="status" aria-live="polite"></p>
       </div>
 
+      <!-- REPORTE SEMANAL -->
       <div class="panel">
         <h2>Reportes semanales por departamento</h2>
 
@@ -221,6 +315,7 @@
             <label for="reportWeek">Semana del reporte</label>
             <input id="reportWeek" type="week" required>
           </div>
+
           <div>
             <label for="reportDepartment">Departamento</label>
             <select id="reportDepartment"></select>
@@ -233,6 +328,7 @@
         <button id="refreshBtn" class="primary" type="button">
           Consultar reporte
         </button>
+
         <button id="printBtn" class="secondary" type="button">
           Imprimir / Guardar en PDF
         </button>
@@ -245,6 +341,10 @@
   </main>
 
   <script>
+    // ==========================================
+    // CONFIGURACIÓN DE SUPABASE
+    // ==========================================
+
     const SUPABASE_URL =
       "https://qzsyejizsjgubitzrdsj.supabase.co";
 
@@ -262,22 +362,40 @@
     let profile = null;
     let departments = [];
 
+    // ==========================================
+    // FECHAS Y SEMANAS
+    // ==========================================
+
     function localDate(date = new Date()) {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
+
       return `${year}-${month}-${day}`;
+    }
+
+    function localDateUTC(date) {
+      return [
+        date.getUTCFullYear(),
+        String(date.getUTCMonth() + 1).padStart(2, "0"),
+        String(date.getUTCDate()).padStart(2, "0")
+      ].join("-");
     }
 
     function getISOWeekValue(date = new Date()) {
       const d = new Date(Date.UTC(
-        date.getFullYear(), date.getMonth(), date.getDate()
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
       ));
 
-      d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + 3);
+      d.setUTCDate(
+        d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + 3
+      );
 
       const year = d.getUTCFullYear();
       const jan4 = new Date(Date.UTC(year, 0, 4));
+
       jan4.setUTCDate(
         jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7) + 3
       );
@@ -291,30 +409,37 @@
 
     function getWeekRange(value) {
       const match = /^(\d{4})-W(\d{2})$/.exec(value || "");
+
       if (!match) return null;
 
       const year = Number(match[1]);
       const week = Number(match[2]);
+
       if (week < 1 || week > 53) return null;
 
       const jan4 = new Date(Date.UTC(year, 0, 4));
       const monday = new Date(jan4);
+
       monday.setUTCDate(
-        jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7)
-          + (week - 1) * 7
+        jan4.getUTCDate() -
+        ((jan4.getUTCDay() + 6) % 7) +
+        (week - 1) * 7
       );
 
-      const check = getISOWeekValue(
-  new Date(
-    monday.getUTCFullYear(),
-    monday.getUTCMonth(),
-    monday.getUTCDate()
-  )
-);
-      if (check !== value) return null;
+      // Validar la semana usando una fecha local construida
+      // con los componentes UTC, evitando desfases horarios.
+      const mondayLocal = new Date(
+        monday.getUTCFullYear(),
+        monday.getUTCMonth(),
+        monday.getUTCDate()
+      );
+
+      if (getISOWeekValue(mondayLocal) !== value) {
+        return null;
+      }
 
       const sunday = new Date(monday);
-      sunday.setUTCDate(sunday.getUTCDate() + 6);
+      sunday.setUTCDate(monday.getUTCDate() + 6);
 
       return {
         start: localDateUTC(monday),
@@ -322,13 +447,19 @@
       };
     }
 
-    function localDateUTC(date) {
-      return [
-        date.getUTCFullYear(),
-        String(date.getUTCMonth() + 1).padStart(2, "0"),
-        String(date.getUTCDate()).padStart(2, "0")
-      ].join("-");
+    function formatDate(dateValue) {
+      if (!dateValue) return "Sin fecha";
+
+      const parts = dateValue.split("-");
+
+      if (parts.length !== 3) return dateValue;
+
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
+
+    // ==========================================
+    // SEGURIDAD Y MENSAJES
+    // ==========================================
 
     function escapeHTML(value) {
       return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -351,23 +482,32 @@
     function showLoggedOut() {
       currentUser = null;
       profile = null;
+      departments = [];
+
       $("loginPanel").classList.remove("hidden");
       $("appPanel").classList.add("hidden");
     }
 
+    // ==========================================
+    // DEPARTAMENTOS
+    // ==========================================
+
     function configureDepartmentSelects() {
       const isAdmin = profile.role === "admin";
+
       const allowed = isAdmin
         ? departments
         : departments.filter(
-            d => String(d.id) === String(profile.department_id)
+            dept =>
+              String(dept.id) === String(profile.department_id)
           );
 
       $("department").replaceChildren();
 
       allowed.forEach(dept => {
-        const option = new Option(dept.name, dept.id);
-        $("department").add(option);
+        $("department").add(
+          new Option(dept.name, dept.id)
+        );
       });
 
       $("department").disabled = !isAdmin;
@@ -381,15 +521,23 @@
       }
 
       allowed.forEach(dept => {
-        $("reportDepartment").add(new Option(dept.name, dept.id));
+        $("reportDepartment").add(
+          new Option(dept.name, dept.id)
+        );
       });
 
       $("reportWeek").value = getISOWeekValue();
     }
 
+    // ==========================================
+    // INICIAR APLICACIÓN
+    // ==========================================
+
     async function loadDashboard() {
-      const { data: sessionData, error: sessionError } =
-        await db.auth.getSession();
+      const {
+        data: sessionData,
+        error: sessionError
+      } = await db.auth.getSession();
 
       if (sessionError) {
         showLoggedOut();
@@ -404,27 +552,45 @@
 
       currentUser = sessionData.session.user;
 
-      const { data: userProfile, error: profileError } = await db
+      const {
+        data: userProfile,
+        error: profileError
+      } = await db
         .from("profiles")
         .select("id, full_name, department_id, role, active")
         .eq("id", currentUser.id)
         .maybeSingle();
 
-      if (profileError || !userProfile || !userProfile.active) {
+      if (
+        profileError ||
+        !userProfile ||
+        !userProfile.active
+      ) {
+        console.error("Error del perfil:", profileError);
+
         showLoggedOut();
-        showMessage("No se pudo validar tu perfil. Contacta al administrador.");
+
+        showMessage(
+          "No se pudo validar tu perfil. Contacta al administrador."
+        );
+
         return;
       }
 
       profile = userProfile;
 
-      const { data: deptData, error: deptError } = await db
+      const {
+        data: deptData,
+        error: deptError
+      } = await db
         .from("departments")
         .select("id, name")
         .eq("active", true)
         .order("id");
 
       if (deptError || !deptData) {
+        console.error("Error de departamentos:", deptError);
+
         showMessage("No se pudieron cargar los departamentos.");
         return;
       }
@@ -434,10 +600,14 @@
       if (
         profile.role !== "admin" &&
         !departments.some(
-          d => String(d.id) === String(profile.department_id)
+          dept =>
+            String(dept.id) === String(profile.department_id)
         )
       ) {
-        showMessage("Tu perfil no tiene un departamento activo asignado.");
+        showMessage(
+          "Tu perfil no tiene un departamento activo asignado."
+        );
+
         return;
       }
 
@@ -445,16 +615,22 @@
       $("appPanel").classList.remove("hidden");
 
       $("usuarioInfo").textContent =
-        `Usuario: ${profile.full_name || currentUser.email} ` +
+        `Usuario: ${profile.full_name?.trim() || currentUser.email} ` +
         `(${currentUser.email}) · Rol: ${profile.role}`;
 
       configureDepartmentSelects();
+
       $("activityDate").value = localDate();
       $("status").value = "En proceso";
 
       showMessage("");
+
       await loadActivities();
     }
+
+    // ==========================================
+    // CONSULTAR Y MOSTRAR REPORTES
+    // ==========================================
 
     async function loadActivities() {
       if (!currentUser || !profile) return;
@@ -469,15 +645,19 @@
 
       if (!range) {
         $("weekLabel").textContent = "";
+
         $("activityList").textContent =
           "Selecciona una semana válida para consultar.";
+
         return;
       }
 
       $("weekLabel").textContent =
-        `Periodo del reporte: ${range.start} al ${range.end}`;
+        `Periodo del reporte: ${formatDate(range.start)} ` +
+        `al ${formatDate(range.end)}`;
 
-      $("activityList").textContent = "Consultando actividades...";
+      $("activityList").textContent =
+        "Consultando actividades...";
 
       let query = db
         .from("activities")
@@ -490,26 +670,38 @@
         .order("activity_date", { ascending: false })
         .order("activity_time", { ascending: false });
 
-      // Solo el administrador puede consultar todos los departamentos.
+      // Administrador: puede seleccionar departamentos.
       if (profile.role === "admin") {
         if (departmentValue !== "all") {
-          query = query.eq("department_id", Number(departmentValue));
+          query = query.eq(
+            "department_id",
+            Number(departmentValue)
+          );
         }
       } else {
-        // Mantener al empleado limitado a su propio departamento.
-        query = query.eq("department_id", Number(profile.department_id));
+        // Usuario normal: limitar al departamento asignado.
+        query = query.eq(
+          "department_id",
+          Number(profile.department_id)
+        );
       }
 
-      const { data, error } = await query;
+      const {
+        data,
+        error
+      } = await query;
 
       if (error) {
         console.error("Error del reporte:", error);
+
         $("activityList").textContent =
           "Error al consultar el reporte: " + error.message;
+
         return;
       }
 
       const activities = data || [];
+
       $("reportCount").textContent =
         `Actividades encontradas: ${activities.length}`;
 
@@ -517,48 +709,137 @@
         $("activityList").textContent =
           "No se encontraron actividades en esta semana y departamento. " +
           "Verifica la fecha registrada y el filtro seleccionado.";
+
         return;
       }
 
+      // ========================================
+      // NUEVO: CONSULTAR NOMBRES DE EMPLEADOS
+      // ========================================
+
+      const userIds = [
+        ...new Set(
+          activities
+            .map(activity => activity.user_id)
+            .filter(Boolean)
+        )
+      ];
+
+      let employeeNames = {};
+
+      if (userIds.length > 0) {
+        const {
+          data: profileData,
+          error: profileError
+        } = await db
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+
+        if (profileError) {
+          console.error(
+            "Error al consultar nombres de empleados:",
+            profileError
+          );
+        } else {
+          employeeNames = Object.fromEntries(
+            (profileData || []).map(person => [
+              person.id,
+              person.full_name
+            ])
+          );
+        }
+      }
+
+      // ========================================
+      // MOSTRAR ACTIVIDADES CON EMPLEADO Y ÁREA
+      // ========================================
+
       $("activityList").innerHTML = activities.map(activity => {
         const dept = departments.find(
-          d => String(d.id) === String(activity.department_id)
+          department =>
+            String(department.id) ===
+            String(activity.department_id)
         );
 
-        const deadline = activity.deadline_met === null
-          ? "Sin indicar"
-          : activity.deadline_met ? "Sí" : "No";
+        const departmentName =
+          dept?.name || "Departamento no identificado";
+
+        const savedName = employeeNames[activity.user_id];
+
+        const employeeName =
+          savedName?.trim() ||
+          (
+            activity.user_id === currentUser.id
+              ? (profile.full_name?.trim() || currentUser.email)
+              : "Nombre no registrado"
+          );
+
+        const deadline =
+          activity.deadline_met === null
+            ? "Sin indicar"
+            : activity.deadline_met
+              ? "Sí"
+              : "No";
 
         return `
           <article class="activity">
             <strong>${escapeHTML(activity.title)}</strong>
 
             <p class="muted">
-              Departamento: ${escapeHTML(dept?.name || "No identificado")}
-              · Fecha: ${escapeHTML(activity.activity_date)}
-              ${activity.activity_time
-                ? " · Hora: " + escapeHTML(activity.activity_time)
-                : ""}
+              <strong>Empleado:</strong>
+              ${escapeHTML(employeeName)}
             </p>
 
-            <p><strong>Descripción:</strong><br>
-              ${escapeHTML(activity.description)}</p>
-
-            <p><strong>Estado:</strong>
-              <span class="status">${escapeHTML(activity.status)}</span>
+            <p class="muted">
+              <strong>Departamento:</strong>
+              ${escapeHTML(departmentName)}
             </p>
 
-            <p><strong>Plazo cumplido:</strong> ${deadline}</p>
+            <p class="muted">
+              <strong>Fecha:</strong>
+              ${escapeHTML(formatDate(activity.activity_date))}
+              ${
+                activity.activity_time
+                  ? " · <strong>Hora:</strong> " +
+                    escapeHTML(activity.activity_time)
+                  : ""
+              }
+            </p>
 
-            <p><strong>Observaciones:</strong>
-              ${escapeHTML(activity.observations || "Ninguna")}</p>
+            <p>
+              <strong>Descripción:</strong><br>
+              ${escapeHTML(activity.description)}
+            </p>
+
+            <p>
+              <strong>Estado:</strong>
+              <span class="status">
+                ${escapeHTML(activity.status)}
+              </span>
+            </p>
+
+            <p>
+              <strong>Plazo cumplido:</strong>
+              ${deadline}
+            </p>
+
+            <p>
+              <strong>Observaciones:</strong>
+              ${escapeHTML(activity.observations || "Ninguna")}
+            </p>
           </article>
         `;
       }).join("");
     }
 
+    // ==========================================
+    // INICIAR SESIÓN
+    // ==========================================
+
     $("loginForm").addEventListener("submit", async event => {
       event.preventDefault();
+
       $("loginBtn").disabled = true;
       showMessage("Verificando acceso...");
 
@@ -569,18 +850,28 @@
         });
 
         if (error) {
-          showMessage("No se pudo iniciar sesión. Comprueba tus credenciales.");
+          showMessage(
+            "No se pudo iniciar sesión. Comprueba tus credenciales."
+          );
+
           return;
         }
 
         await loadDashboard();
+
       } catch (error) {
         console.error(error);
+
         showMessage("No se pudo conectar con Supabase.");
+
       } finally {
         $("loginBtn").disabled = false;
       }
     });
+
+    // ==========================================
+    // GUARDAR ACTIVIDAD
+    // ==========================================
 
     $("activityForm").addEventListener("submit", async event => {
       event.preventDefault();
@@ -591,12 +882,21 @@
       }
 
       const departmentId = Number($("department").value);
+      const activityDate = $("activityDate").value;
+
+      if (!activityDate) {
+        showFormMessage("Selecciona la fecha de la actividad.");
+        return;
+      }
 
       if (
         profile.role !== "admin" &&
         departmentId !== Number(profile.department_id)
       ) {
-        showFormMessage("No puedes registrar actividades en otro departamento.");
+        showFormMessage(
+          "No puedes registrar actividades en otro departamento."
+        );
+
         return;
       }
 
@@ -610,21 +910,28 @@
           user_id: currentUser.id,
           department_id: departmentId,
           title: $("title").value.trim(),
-          activity_date: $("activityDate").value,
+          activity_date: activityDate,
           activity_time: $("activityTime").value || null,
           description: $("description").value.trim(),
-          deadline_met: deadlineValue === ""
-            ? null
-            : deadlineValue === "true",
+          deadline_met:
+            deadlineValue === ""
+              ? null
+              : deadlineValue === "true",
           observations: $("observations").value.trim(),
           status: $("status").value
         };
 
-        const { error } = await db.from("activities").insert(activity);
+        const { error } = await db
+          .from("activities")
+          .insert(activity);
 
         if (error) {
           console.error("Error al guardar:", error);
-          showFormMessage("No se pudo guardar: " + error.message);
+
+          showFormMessage(
+            "No se pudo guardar: " + error.message
+          );
+
           return;
         }
 
@@ -637,29 +944,59 @@
         $("status").value = "En proceso";
         $("observations").value = "";
 
-        // Actualizar el reporte con la semana de la actividad guardada.
-        $("reportWeek").value = getISOWeekValue(
-          new Date($("activityDate").value + "T12:00:00")
+        // Abrir automáticamente la semana de la actividad.
+        const savedDate = new Date(
+          activityDate + "T12:00:00"
         );
 
+        $("reportWeek").value = getISOWeekValue(savedDate);
+
+        // Si es administrador, mostrar el departamento registrado.
         if (profile.role === "admin") {
-          $("reportDepartment").value = String(departmentId);
+          $("reportDepartment").value =
+            String(departmentId);
         }
 
         await loadActivities();
+
       } catch (error) {
         console.error(error);
-        showFormMessage("Ocurrió un error al guardar la actividad.");
+
+        showFormMessage(
+          "Ocurrió un error al guardar la actividad."
+        );
+
       } finally {
         $("saveBtn").disabled = false;
       }
     });
 
-    $("refreshBtn").addEventListener("click", loadActivities);
-    $("reportWeek").addEventListener("change", loadActivities);
-    $("reportDepartment").addEventListener("change", loadActivities);
+    // ==========================================
+    // FILTROS, IMPRESIÓN Y ACTUALIZACIÓN
+    // ==========================================
 
-    $("printBtn").addEventListener("click", () => window.print());
+    $("refreshBtn").addEventListener(
+      "click",
+      loadActivities
+    );
+
+    $("reportWeek").addEventListener(
+      "change",
+      loadActivities
+    );
+
+    $("reportDepartment").addEventListener(
+      "change",
+      loadActivities
+    );
+
+    $("printBtn").addEventListener("click", () => {
+      window.print();
+    });
+
+    // ==========================================
+    // CERRAR SESIÓN
+    // ==========================================
 
     $("logoutBtn").addEventListener("click", async () => {
       $("logoutBtn").disabled = true;
@@ -674,17 +1011,29 @@
 
         showLoggedOut();
         showMessage("Sesión cerrada.");
+
       } catch (error) {
         console.error(error);
-        showMessage("Ocurrió un error al cerrar sesión.");
+
+        showMessage(
+          "Ocurrió un error al cerrar sesión."
+        );
+
       } finally {
         $("logoutBtn").disabled = false;
       }
     });
 
+    // ==========================================
+    // CARGA INICIAL
+    // ==========================================
+
     loadDashboard().catch(error => {
       console.error(error);
-      showMessage("Ocurrió un error al iniciar la aplicación.");
+
+      showMessage(
+        "Ocurrió un error al iniciar la aplicación."
+      );
     });
   </script>
 </body>
