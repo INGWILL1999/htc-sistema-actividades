@@ -6,860 +6,696 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Human Test Center | Sistema de Actividades</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
     * { box-sizing: border-box; }
-
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f1f5f9;
-      color: #1e293b;
-    }
-
-    header {
-      background: #12345a;
-      color: white;
-      padding: 22px;
-      text-align: center;
-    }
-
+    body { font-family: Arial, sans-serif; margin: 0; background: #f1f5f9; color: #1e293b; }
+    header { background: #12345a; color: white; padding: 22px; text-align: center; }
     header h1 { margin: 0 0 8px; }
     header p { margin: 0; }
-
-    main {
-      max-width: 1000px;
-      margin: 25px auto;
-      padding: 20px;
-    }
-
-    .panel {
-      background: white;
-      padding: 22px;
-      margin-bottom: 20px;
-      border-radius: 12px;
-      box-shadow: 0 3px 12px #00000010;
-    }
-
-    label {
-      display: block;
-      font-weight: bold;
-      margin: 14px 0 6px;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 11px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font: inherit;
-    }
-
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
-
-    button {
-      border: 0;
-      border-radius: 6px;
-      padding: 12px 16px;
-      margin: 14px 8px 0 0;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    button:disabled {
-      opacity: .6;
-      cursor: wait;
-    }
-
-    .primary {
-      background: #1768ac;
-      color: white;
-    }
-
-    .secondary {
-      background: #e2e8f0;
-      color: #1e293b;
-    }
-
-    .logout {
-      background: #b91c1c;
-      color: white;
-    }
-
-    .hidden, [hidden] {
-      display: none !important;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0 18px;
-    }
-
+    main { max-width: 1000px; margin: 25px auto; padding: 20px; }
+    .panel { background: white; padding: 22px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 3px 12px #00000010; }
+    label { display: block; font-weight: bold; margin: 14px 0 6px; }
+    input, select, textarea { width: 100%; padding: 11px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    button { border: 0; border-radius: 6px; padding: 12px 16px; margin: 14px 8px 0 0; cursor: pointer; font-weight: bold; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .primary { background: #1768ac; color: white; }
+    .secondary { background: #e2e8f0; color: #1e293b; }
+    .logout, .danger { background: #b91c1c; color: white; }
+    .hidden, [hidden] { display: none !important; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; }
     .full { grid-column: 1 / -1; }
-
-    .activity {
-      border: 1px solid #dbe3ed;
-      border-radius: 8px;
-      padding: 14px;
-      margin-top: 12px;
-      overflow-wrap: anywhere;
-      break-inside: avoid;
-    }
-
-    .muted {
-      color: #64748b;
-      font-size: 14px;
-    }
-
-    #mensaje, #formMessage {
-      overflow-wrap: anywhere;
-    }
-
+    .activity { border: 1px solid #dbe3ed; border-radius: 8px; padding: 14px; margin-top: 12px; overflow-wrap: anywhere; break-inside: avoid; }
+    .muted { color: #64748b; font-size: 14px; }
+    #mensaje, #formMessage, #employeeMessage { overflow-wrap: anywhere; }
+    .employee-row { border: 1px solid #dbe3ed; border-radius: 8px; padding: 14px; margin-top: 12px; overflow-wrap: anywhere; }
+    .employee-row button { margin-top: 8px; }
+    .status-active { color: #15803d; font-weight: bold; }
+    .status-inactive { color: #b91c1c; font-weight: bold; }
     @media (max-width: 600px) {
       main { padding: 12px; }
       .grid { grid-template-columns: 1fr; }
       .full { grid-column: auto; }
     }
-
     @media print {
       body { background: white; color: black; }
-
-      header {
-        background: white !important;
-        color: black !important;
-        padding: 0 0 12px;
-      }
-
-      main {
-        max-width: none;
-        margin: 0;
-        padding: 0;
-      }
-
-      #loginPanel,
-      #activityFormPanel,
-      #userPanel,
-      #reportControls,
-      #refreshBtn,
-      #printBtn,
-      #logoutBtn,
-      #mensaje,
-      #formMessage {
-        display: none !important;
-      }
-
-      .panel {
-        box-shadow: none;
-        border: 0;
-        padding: 0;
-      }
-
+      header { background: white !important; color: black !important; padding: 0 0 12px; }
+      main { max-width: none; margin: 0; padding: 0; }
+      #loginPanel, #activityFormPanel, #userPanel, #reportControls,
+      #refreshBtn, #printBtn, #logoutBtn, #mensaje, #formMessage,
+      #adminEmployeesPanel { display: none !important; }
+      .panel { box-shadow: none; border: 0; padding: 0; }
       .activity { border: 1px solid #999; }
     }
   </style>
 </head>
-
 <body>
-  <header>
-    <h1>Human Test Center</h1>
-    <p>Sistema de Registro de Actividades</p>
-  </header>
+<header>
+  <h1>Human Test Center</h1>
+  <p>Sistema de Registro de Actividades</p>
+</header>
 
-  <main>
-    <!-- INICIO DE SESIÓN -->
-    <section id="loginPanel" class="panel">
-      <h2>Iniciar sesión</h2>
+<main>
+  <section id="loginPanel" class="panel">
+    <h2>Iniciar sesión</h2>
+    <form id="loginForm">
+      <label for="email">Correo electrónico</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">Contraseña</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button class="primary" id="loginBtn" type="submit">Iniciar sesión</button>
+    </form>
+  </section>
 
-      <form id="loginForm">
-        <label for="email">Correo electrónico</label>
-        <input
-          id="email"
-          type="email"
-          autocomplete="username"
-          required
-        >
+  <section id="appPanel" class="hidden">
+    <div id="userPanel" class="panel">
+      <div id="usuarioInfo"></div>
+      <button id="logoutBtn" class="logout" type="button">Cerrar sesión</button>
+    </div>
 
-        <label for="password">Contraseña</label>
-        <input
-          id="password"
-          type="password"
-          autocomplete="current-password"
-          required
-        >
-
-        <button class="primary" id="loginBtn" type="submit">
-          Iniciar sesión
-        </button>
-      </form>
-    </section>
-
-    <!-- APLICACIÓN -->
-    <section id="appPanel" class="hidden">
-
-      <div id="userPanel" class="panel">
-        <div id="usuarioInfo"></div>
-        <button id="logoutBtn" class="logout" type="button">
-          Cerrar sesión
-        </button>
-      </div>
-
-      <!-- REGISTRO DE ACTIVIDADES: ADMINISTRADOR Y EMPLEADOS -->
-      <div id="activityFormPanel" class="panel">
-        <h2>Registrar actividad</h2>
-
-        <form id="activityForm">
-          <div class="grid">
-
-            <div class="full">
-              <label for="department">Departamento</label>
-              <select id="department" required></select>
-            </div>
-
-            <div>
-              <label for="activityDate">Fecha</label>
-              <input id="activityDate" type="date" required>
-            </div>
-
-            <div>
-              <label for="activityTime">Hora (opcional)</label>
-              <input id="activityTime" type="time">
-            </div>
-
-            <div class="full">
-              <label for="title">Título de la actividad</label>
-              <input id="title" type="text" maxlength="200" required>
-            </div>
-
-            <div class="full">
-              <label for="description">
-                Descripción del trabajo realizado
-              </label>
-              <textarea id="description" required></textarea>
-            </div>
-
-            <div>
-              <label for="deadline">¿Se cumplió el plazo?</label>
-              <select id="deadline">
-                <option value="">Sin indicar</option>
-                <option value="true">Sí</option>
-                <option value="false">No</option>
-              </select>
-            </div>
-
-            <div>
-              <label for="status">Estado</label>
-              <select id="status" required>
-                <option value="Pendiente">Pendiente</option>
-                <option value="En proceso">En proceso</option>
-                <option value="Completada">Completada</option>
-              </select>
-            </div>
-
-            <div class="full">
-              <label for="observations">Observaciones</label>
-              <textarea id="observations"></textarea>
-            </div>
-
+    <div id="activityFormPanel" class="panel">
+      <h2>Registrar actividad</h2>
+      <form id="activityForm">
+        <div class="grid">
+          <div class="full">
+            <label for="department">Departamento</label>
+            <select id="department" required></select>
           </div>
-
-          <button id="saveBtn" class="primary" type="submit">
-            Guardar actividad
-          </button>
-        </form>
-
-        <p id="formMessage" role="status" aria-live="polite"></p>
-      </div>
-
-      <!-- REPORTES GENERALES: SOLO ADMINISTRADOR -->
-      <section id="adminReportsPanel" class="panel hidden">
-        <h2>Reportes semanales por departamento</h2>
-        <p class="muted">
-          Sección exclusiva para administradores.
-        </p>
-
-        <div id="reportControls" class="grid">
           <div>
-            <label for="reportWeek">Semana del reporte</label>
-            <input id="reportWeek" type="week" required>
+            <label for="activityDate">Fecha</label>
+            <input id="activityDate" type="date" required>
           </div>
-
           <div>
-            <label for="reportDepartment">Departamento</label>
-            <select id="reportDepartment"></select>
+            <label for="activityTime">Hora (opcional)</label>
+            <input id="activityTime" type="time">
+          </div>
+          <div class="full">
+            <label for="title">Título de la actividad</label>
+            <input id="title" type="text" maxlength="200" required>
+          </div>
+          <div class="full">
+            <label for="description">Descripción del trabajo realizado</label>
+            <textarea id="description" required></textarea>
+          </div>
+          <div>
+            <label for="deadline">¿Se cumplió el plazo?</label>
+            <select id="deadline">
+              <option value="">Sin indicar</option>
+              <option value="true">Sí</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+          <div>
+            <label for="status">Estado</label>
+            <select id="status" required>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Completada">Completada</option>
+            </select>
+          </div>
+          <div class="full">
+            <label for="observations">Observaciones</label>
+            <textarea id="observations"></textarea>
           </div>
         </div>
+        <button id="saveBtn" class="primary" type="submit">Guardar actividad</button>
+      </form>
+      <p id="formMessage" role="status" aria-live="polite"></p>
+    </div>
 
-        <p id="weekLabel" class="muted"></p>
-        <p id="reportCount" class="muted"></p>
-
-        <button id="refreshBtn" class="primary" type="button">
-          Consultar reporte
-        </button>
-
-        <button id="printBtn" class="secondary" type="button">
-          Imprimir / Guardar en PDF
-        </button>
-
-        <div id="activityList" aria-live="polite"></div>
-      </section>
+    <section id="adminReportsPanel" class="panel hidden">
+      <h2>Reportes semanales por departamento</h2>
+      <p class="muted">Sección exclusiva para administradores.</p>
+      <div id="reportControls" class="grid">
+        <div>
+          <label for="reportWeek">Semana del reporte</label>
+          <input id="reportWeek" type="week" required>
+        </div>
+        <div>
+          <label for="reportDepartment">Departamento</label>
+          <select id="reportDepartment"></select>
+        </div>
+      </div>
+      <p id="weekLabel" class="muted"></p>
+      <p id="reportCount" class="muted"></p>
+      <button id="refreshBtn" class="primary" type="button">Consultar reporte</button>
+      <button id="printBtn" class="secondary" type="button">Imprimir / Guardar en PDF</button>
+      <div id="activityList" aria-live="polite"></div>
     </section>
 
-    <p id="mensaje" role="status" aria-live="polite"></p>
-  </main>
+    <!-- ADMINISTRACIÓN DE EMPLEADOS -->
+    <section id="adminEmployeesPanel" class="panel hidden">
+      <h2>Administración de empleados</h2>
+      <p class="muted">Crear cuentas, asignar departamentos y administrar accesos.</p>
+      <form id="employeeForm">
+        <div class="grid">
+          <div>
+            <label for="employeeName">Nombre completo</label>
+            <input id="employeeName" type="text" maxlength="150" autocomplete="name" required>
+          </div>
+          <div>
+            <label for="employeeEmail">Correo electrónico</label>
+            <input id="employeeEmail" type="email" autocomplete="email" required>
+          </div>
+          <div>
+            <label for="employeePassword">Contraseña inicial</label>
+            <input id="employeePassword" type="password" minlength="10" autocomplete="new-password" required>
+            <p class="muted">Usa al menos 10 caracteres y entrega la contraseña de forma segura.</p>
+          </div>
+          <div>
+            <label for="employeeDepartment">Departamento</label>
+            <select id="employeeDepartment" required>
+              <option value="">Selecciona un departamento</option>
+            </select>
+          </div>
+        </div>
+        <button id="createEmployeeBtn" class="primary" type="submit">Crear empleado</button>
+      </form>
+      <p id="employeeMessage" role="status" aria-live="polite"></p>
+      <h3>Empleados registrados</h3>
+      <button id="refreshEmployeesBtn" class="secondary" type="button">Actualizar lista</button>
+      <div id="employeeList" aria-live="polite"></div>
+    </section>
+  </section>
 
-  <script>
-    // CONFIGURACIÓN DE SUPABASE
-    const SUPABASE_URL =
-      "https://qzsyejizsjgubitzrdsj.supabase.co";
+  <p id="mensaje" role="status" aria-live="polite"></p>
+</main>
 
-    const SUPABASE_KEY =
-      "sb_publishable_b_aQlGzfTH_nitP5T5OwZg_zPwBPW-i";
+<script>
+  const SUPABASE_URL = "https://qzsyejizsjgubitzrdsj.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_b_aQlGzfTH_nitP5T5OwZg_zPwBPW-i";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
 
-    const db = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+  let currentUser = null;
+  let profile = null;
+  let departments = [];
 
-    const $ = id => document.getElementById(id);
+  function localDate(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
 
-    let currentUser = null;
-    let profile = null;
-    let departments = [];
+  function getISOWeekValue(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+  }
 
-    function localDate(date) {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const d = String(date.getDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
+  function getWeekRange(weekValue) {
+    if (!weekValue || !/^\d{4}-W\d{2}$/.test(weekValue)) return null;
+    const [yearText, weekText] = weekValue.split("-W");
+    const year = Number(yearText);
+    const week = Number(weekText);
+    if (week < 1 || week > 53) return null;
+    const jan4 = new Date(Date.UTC(year, 0, 4));
+    const day = jan4.getUTCDay() || 7;
+    const monday = new Date(jan4);
+    monday.setUTCDate(jan4.getUTCDate() - day + 1 + (week - 1) * 7);
+    const sunday = new Date(monday);
+    sunday.setUTCDate(monday.getUTCDate() + 6);
+    const fmt = d => `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
+    return [fmt(monday), fmt(sunday)];
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[char]);
+  }
+
+  function showMessage(text) { $("mensaje").textContent = text; }
+  function showFormMessage(text) { $("formMessage").textContent = text; }
+  function showEmployeeMessage(text) { $("employeeMessage").textContent = text; }
+
+  function showLoggedOut() {
+    currentUser = null;
+    profile = null;
+    departments = [];
+    $("loginPanel").classList.remove("hidden");
+    $("appPanel").classList.add("hidden");
+    $("adminReportsPanel").classList.add("hidden");
+    $("adminEmployeesPanel").classList.add("hidden");
+    $("activityList").replaceChildren();
+    $("employeeList").replaceChildren();
+    $("usuarioInfo").textContent = "";
+    showFormMessage("");
+    showEmployeeMessage("");
+  }
+
+  async function loadDashboard() {
+    const { data: sessionData, error: sessionError } = await db.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      showLoggedOut();
+      return;
     }
 
-    function getISOWeekValue(date) {
-      const d = new Date(Date.UTC(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate()
-      ));
+    currentUser = sessionData.session.user;
 
-      const dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const { data: userProfile, error: profileError } = await db
+      .from("profiles")
+      .select("id, full_name, department_id, role, active")
+      .eq("id", currentUser.id)
+      .maybeSingle();
 
-      const yearStart = new Date(Date.UTC(
-        d.getUTCFullYear(), 0, 1
-      ));
-
-      const week = Math.ceil(
-        (((d - yearStart) / 86400000) + 1) / 7
-      );
-
-      return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+    if (profileError || !userProfile || !userProfile.active) {
+      await db.auth.signOut();
+      showLoggedOut();
+      showMessage("No se pudo validar tu perfil activo. Contacta al administrador.");
+      return;
     }
 
-    function getWeekRange(weekValue) {
-      if (!weekValue || !/^\d{4}-W\d{2}$/.test(weekValue)) {
-        return null;
-      }
+    profile = userProfile;
 
-      const [yearText, weekText] = weekValue.split("-W");
-      const year = Number(yearText);
-      const week = Number(weekText);
+    const { data: deptData, error: deptError } = await db
+      .from("departments")
+      .select("id, name, active")
+      .order("id");
 
-      if (week < 1 || week > 53) return null;
-
-      const jan4 = new Date(Date.UTC(year, 0, 4));
-      const day = jan4.getUTCDay() || 7;
-      const monday = new Date(jan4);
-
-      monday.setUTCDate(
-        jan4.getUTCDate() - day + 1 + (week - 1) * 7
-      );
-
-      const sunday = new Date(monday);
-      sunday.setUTCDate(monday.getUTCDate() + 6);
-
-      const fmt = d =>
-        `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
-
-      return [fmt(monday), fmt(sunday)];
+    if (deptError || !deptData) {
+      showMessage("No se pudieron cargar los departamentos.");
+      return;
     }
 
-    function escapeHTML(value) {
-      return String(value ?? "").replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      })[char]);
+    departments = deptData.filter(d => d.active !== false);
+    $("loginPanel").classList.add("hidden");
+    $("appPanel").classList.remove("hidden");
+
+    $("usuarioInfo").textContent =
+      `Usuario: ${profile.full_name?.trim() || currentUser.email} (${currentUser.email}) · Rol: ${profile.role}`;
+
+    const departmentSelect = $("department");
+    departmentSelect.replaceChildren();
+
+    const allowedDepartments = profile.role === "admin"
+      ? departments
+      : departments.filter(d => String(d.id) === String(profile.department_id));
+
+    allowedDepartments.forEach(dept => {
+      const option = document.createElement("option");
+      option.value = dept.id;
+      option.textContent = dept.name;
+      departmentSelect.appendChild(option);
+    });
+
+    if (allowedDepartments.length === 0) {
+      showMessage("Tu perfil no tiene un departamento asignado. Contacta al administrador.");
+      return;
     }
 
-    function showMessage(text) {
-      $("mensaje").textContent = text;
-    }
+    departmentSelect.disabled = profile.role !== "admin";
+    departmentSelect.value = String(profile.role === "admin"
+      ? allowedDepartments[0].id : profile.department_id);
 
-    function showFormMessage(text) {
-      $("formMessage").textContent = text;
-    }
+    $("activityDate").value = localDate(new Date());
 
-    function showLoggedOut() {
-      currentUser = null;
-      profile = null;
-      departments = [];
+    const isAdmin = profile.role === "admin";
+    $("adminReportsPanel").classList.toggle("hidden", !isAdmin);
+    $("adminEmployeesPanel").classList.toggle("hidden", !isAdmin);
 
-      $("loginPanel").classList.remove("hidden");
-      $("appPanel").classList.add("hidden");
-      $("adminReportsPanel").classList.add("hidden");
-      $("activityList").replaceChildren();
-      $("usuarioInfo").textContent = "";
-      showFormMessage("");
-    }
+    if (isAdmin) {
+      $("reportWeek").value = getISOWeekValue(new Date());
 
-    // CARGAR USUARIO, PERFIL Y PERMISOS DE INTERFAZ
-    async function loadDashboard() {
-      const { data: sessionData, error: sessionError } =
-        await db.auth.getSession();
+      const reportDepartment = $("reportDepartment");
+      reportDepartment.replaceChildren();
 
-      if (sessionError || !sessionData.session) {
-        showLoggedOut();
-        return;
-      }
+      const allOption = document.createElement("option");
+      allOption.value = "all";
+      allOption.textContent = "Todos los departamentos";
+      reportDepartment.appendChild(allOption);
 
-      currentUser = sessionData.session.user;
-
-      const { data: userProfile, error: profileError } = await db
-        .from("profiles")
-        .select("id, full_name, department_id, role, active")
-        .eq("id", currentUser.id)
-        .maybeSingle();
-
-      if (profileError || !userProfile || !userProfile.active) {
-        await db.auth.signOut();
-        showLoggedOut();
-        showMessage(
-          "No se pudo validar tu perfil activo. Contacta al administrador."
-        );
-        return;
-      }
-
-      profile = userProfile;
-
-      const { data: deptData, error: deptError } = await db
-        .from("departments")
-        .select("id, name")
-        .order("id");
-
-      if (deptError || !deptData) {
-        showMessage("No se pudieron cargar los departamentos.");
-        return;
-      }
-
-      departments = deptData;
-
-      $("loginPanel").classList.add("hidden");
-      $("appPanel").classList.remove("hidden");
-
-      const displayName =
-        profile.full_name?.trim() || currentUser.email;
-
-      $("usuarioInfo").textContent =
-        `Usuario: ${displayName} (${currentUser.email}) · Rol: ${profile.role}`;
-
-      // Empleados solo pueden seleccionar su propio departamento.
-      const departmentSelect = $("department");
-      departmentSelect.replaceChildren();
-
-      const allowedDepartments = profile.role === "admin"
-        ? departments
-        : departments.filter(
-            d => String(d.id) === String(profile.department_id)
-          );
-
-      allowedDepartments.forEach(dept => {
+      departments.forEach(dept => {
         const option = document.createElement("option");
         option.value = dept.id;
         option.textContent = dept.name;
-        departmentSelect.appendChild(option);
+        reportDepartment.appendChild(option);
       });
 
-      if (allowedDepartments.length === 0) {
-        showMessage(
-          "Tu perfil no tiene un departamento asignado. Contacta al administrador."
-        );
-        return;
-      }
+      const employeeDepartment = $("employeeDepartment");
+      employeeDepartment.replaceChildren();
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Selecciona un departamento";
+      employeeDepartment.appendChild(placeholder);
 
-      departmentSelect.disabled = profile.role !== "admin";
-      departmentSelect.value = String(
-        profile.role === "admin"
-          ? allowedDepartments[0].id
-          : profile.department_id
-      );
+      departments.forEach(dept => {
+        const option = document.createElement("option");
+        option.value = dept.id;
+        option.textContent = dept.name;
+        employeeDepartment.appendChild(option);
+      });
 
-      $("activityDate").value = localDate(new Date());
-
-      // Ocultar por completo los reportes generales a empleados.
-      const isAdmin = profile.role === "admin";
-
-      $("adminReportsPanel").classList.toggle("hidden", !isAdmin);
-
-      if (isAdmin) {
-        $("reportWeek").value = getISOWeekValue(new Date());
-
-        const reportDepartment = $("reportDepartment");
-        reportDepartment.replaceChildren();
-
-        const allOption = document.createElement("option");
-        allOption.value = "all";
-        allOption.textContent = "Todos los departamentos";
-        reportDepartment.appendChild(allOption);
-
-        departments.forEach(dept => {
-          const option = document.createElement("option");
-          option.value = dept.id;
-          option.textContent = dept.name;
-          reportDepartment.appendChild(option);
-        });
-
-        await loadActivities();
-      } else {
-        $("activityList").replaceChildren();
-        $("reportCount").textContent = "";
-        $("weekLabel").textContent = "";
-      }
-
-      showMessage("");
-    }
-
-    // REPORTE SEMANAL EXCLUSIVO DEL ADMINISTRADOR
-    async function loadActivities() {
-      if (!profile || profile.role !== "admin") {
-        $("activityList").replaceChildren();
-        return;
-      }
-
-      const range = getWeekRange($("reportWeek").value);
-
-      if (!range) {
-        showMessage("Selecciona una semana válida.");
-        return;
-      }
-
-      const [startDate, endDate] = range;
-
-      $("weekLabel").textContent =
-        `Semana: ${startDate} al ${endDate}`;
-
-      $("activityList").textContent = "Cargando actividades...";
+      await loadActivities();
+      await loadEmployees();
+    } else {
+      $("activityList").replaceChildren();
       $("reportCount").textContent = "";
-
-      let query = db
-        .from("activities")
-        .select(`
-          id,
-          user_id,
-          department_id,
-          title,
-          activity_date,
-          activity_time,
-          description,
-          deadline_met,
-          observations,
-          status
-        `)
-        .gte("activity_date", startDate)
-        .lte("activity_date", endDate)
-        .order("activity_date", { ascending: false })
-        .order("activity_time", { ascending: false });
-
-      const selectedDepartment = $("reportDepartment").value;
-
-      if (selectedDepartment !== "all") {
-        query = query.eq(
-          "department_id",
-          Number(selectedDepartment)
-        );
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        $("activityList").textContent =
-          "No se pudieron cargar los reportes. Verifica los permisos de Supabase.";
-        $("reportCount").textContent = "";
-        console.error("Error al consultar reportes:", error);
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        $("activityList").textContent =
-          "No hay actividades registradas para esta semana y departamento.";
-        $("reportCount").textContent = "Total de actividades: 0";
-        return;
-      }
-
-      // Obtener nombres de los empleados relacionados con las actividades.
-      const userIds = [
-        ...new Set(data.map(a => a.user_id).filter(Boolean))
-      ];
-
-      let employeeNames = {};
-
-      if (userIds.length > 0) {
-        const { data: profilesData, error: namesError } = await db
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", userIds);
-
-        if (!namesError && profilesData) {
-          employeeNames = Object.fromEntries(
-            profilesData.map(p => [p.id, p.full_name])
-          );
-        } else if (namesError) {
-          console.warn(
-            "No se pudieron consultar algunos nombres de empleados:",
-            namesError
-          );
-        }
-      }
-
-      $("reportCount").textContent =
-        `Total de actividades: ${data.length}`;
-
-      $("activityList").innerHTML = data.map(activity => {
-        const dept = departments.find(
-          d => String(d.id) === String(activity.department_id)
-        );
-
-        const employeeName =
-          employeeNames[activity.user_id]?.trim() ||
-          (
-            activity.user_id === currentUser.id
-              ? (profile.full_name?.trim() || currentUser.email)
-              : "Nombre no registrado"
-          );
-
-        const deadline =
-          activity.deadline_met === null
-            ? "Sin indicar"
-            : activity.deadline_met
-              ? "Sí"
-              : "No";
-
-        return `
-          <article class="activity">
-            <strong>${escapeHTML(activity.title)}</strong>
-
-            <p class="muted">
-              <strong>Empleado:</strong>
-              ${escapeHTML(employeeName)}
-            </p>
-
-            <p class="muted">
-              <strong>Departamento:</strong>
-              ${escapeHTML(dept?.name || "No registrado")}
-              · <strong>Fecha:</strong>
-              ${escapeHTML(activity.activity_date)}
-              ${
-                activity.activity_time
-                  ? " · <strong>Hora:</strong> " +
-                    escapeHTML(activity.activity_time)
-                  : ""
-              }
-            </p>
-
-            <p>
-              <strong>Descripción:</strong>
-              ${escapeHTML(activity.description)}
-            </p>
-
-            <p>
-              <strong>Estado:</strong>
-              ${escapeHTML(activity.status)}
-            </p>
-
-            <p>
-              <strong>Plazo cumplido:</strong>
-              ${deadline}
-            </p>
-
-            <p>
-              <strong>Observaciones:</strong>
-              ${escapeHTML(activity.observations || "Ninguna")}
-            </p>
-          </article>
-        `;
-      }).join("");
+      $("weekLabel").textContent = "";
+      $("employeeList").replaceChildren();
     }
 
-    // INICIO DE SESIÓN
-    $("loginForm").addEventListener("submit", async event => {
-      event.preventDefault();
+    showMessage("");
+  }
 
-      $("loginBtn").disabled = true;
-      showMessage("Verificando acceso...");
+  async function loadActivities() {
+    if (!profile || profile.role !== "admin") {
+      $("activityList").replaceChildren();
+      return;
+    }
 
+    const range = getWeekRange($("reportWeek").value);
+    if (!range) {
+      showMessage("Selecciona una semana válida.");
+      return;
+    }
+
+    const [startDate, endDate] = range;
+    $("weekLabel").textContent = `Semana: ${startDate} al ${endDate}`;
+    $("activityList").textContent = "Cargando actividades...";
+    $("reportCount").textContent = "";
+
+    let query = db.from("activities").select(`
+      id, user_id, department_id, title, activity_date, activity_time,
+      description, deadline_met, observations, status
+    `).gte("activity_date", startDate).lte("activity_date", endDate)
+      .order("activity_date", { ascending: false })
+      .order("activity_time", { ascending: false });
+
+    const selectedDepartment = $("reportDepartment").value;
+    if (selectedDepartment !== "all") {
+      query = query.eq("department_id", Number(selectedDepartment));
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      $("activityList").textContent = "No se pudieron cargar los reportes. Verifica los permisos de Supabase.";
+      console.error("Error al consultar reportes:", error);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      $("activityList").textContent = "No hay actividades registradas para esta semana y departamento.";
+      $("reportCount").textContent = "Total de actividades: 0";
+      return;
+    }
+
+    const userIds = [...new Set(data.map(a => a.user_id).filter(Boolean))];
+    let employeeNames = {};
+
+    if (userIds.length) {
+      const { data: profilesData, error: namesError } = await db
+        .from("profiles").select("id, full_name").in("id", userIds);
+      if (!namesError && profilesData) {
+        employeeNames = Object.fromEntries(profilesData.map(p => [p.id, p.full_name]));
+      }
+    }
+
+    $("reportCount").textContent = `Total de actividades: ${data.length}`;
+    $("activityList").innerHTML = data.map(activity => {
+      const dept = departments.find(d => String(d.id) === String(activity.department_id));
+      const employeeName = employeeNames[activity.user_id]?.trim() ||
+        (activity.user_id === currentUser.id
+          ? (profile.full_name?.trim() || currentUser.email)
+          : "Nombre no registrado");
+      const deadline = activity.deadline_met === null
+        ? "Sin indicar" : activity.deadline_met ? "Sí" : "No";
+
+      return `<article class="activity">
+        <strong>${escapeHTML(activity.title)}</strong>
+        <p class="muted"><strong>Empleado:</strong> ${escapeHTML(employeeName)}</p>
+        <p class="muted"><strong>Departamento:</strong> ${escapeHTML(dept?.name || "No registrado")}
+        · <strong>Fecha:</strong> ${escapeHTML(activity.activity_date)}
+        ${activity.activity_time ? " · <strong>Hora:</strong> " + escapeHTML(activity.activity_time) : ""}</p>
+        <p><strong>Descripción:</strong> ${escapeHTML(activity.description)}</p>
+        <p><strong>Estado:</strong> ${escapeHTML(activity.status)}</p>
+        <p><strong>Plazo cumplido:</strong> ${deadline}</p>
+        <p><strong>Observaciones:</strong> ${escapeHTML(activity.observations || "Ninguna")}</p>
+      </article>`;
+    }).join("");
+  }
+
+  // Llamadas a la función protegida admin-employees.
+  async function invokeEmployeeAdmin(payload) {
+    if (!profile || profile.role !== "admin" || !profile.active) {
+      throw new Error("Solo un administrador activo puede realizar esta operación.");
+    }
+
+    const { data, error } = await db.functions.invoke("admin-employees", {
+      body: payload
+    });
+
+    if (error) {
+      let detail = "";
       try {
-        const { error } = await db.auth.signInWithPassword({
-          email: $("email").value.trim(),
-          password: $("password").value
-        });
-
-        if (error) {
-          showMessage(
-            "No se pudo iniciar sesión. Comprueba tus credenciales."
-          );
-          return;
+        if (error.context && typeof error.context.json === "function") {
+          const body = await error.context.json();
+          detail = body.error || body.message || "";
         }
+      } catch (_) {}
 
-        await loadDashboard();
-      } catch (error) {
-        console.error(error);
-        showMessage("No se pudo conectar con Supabase.");
-      } finally {
-        $("loginBtn").disabled = false;
-      }
-    });
+      throw new Error(detail || error.message || "No se pudo contactar con la función de administración.");
+    }
 
-    // GUARDAR ACTIVIDAD
-    $("activityForm").addEventListener("submit", async event => {
-      event.preventDefault();
+    if (data?.error) throw new Error(data.error);
+    return data;
+  }
 
-      if (!currentUser || !profile) {
-        showFormMessage("Inicia sesión nuevamente.");
+  async function loadEmployees() {
+    if (!profile || profile.role !== "admin") return;
+
+    $("employeeList").textContent = "Cargando empleados...";
+    $("refreshEmployeesBtn").disabled = true;
+
+    try {
+      const result = await invokeEmployeeAdmin({ action: "list" });
+      const employees = result.employees || [];
+
+      if (!employees.length) {
+        $("employeeList").textContent = "No hay empleados registrados.";
         return;
       }
 
-      const departmentId = Number($("department").value);
+      $("employeeList").innerHTML = employees.map(employee => {
+        const dept = departments.find(d => String(d.id) === String(employee.department_id));
+        const isActive = employee.active === true;
 
-      if (
-        profile.role !== "admin" &&
-        departmentId !== Number(profile.department_id)
-      ) {
-        showFormMessage(
-          "No puedes registrar actividades en otro departamento."
-        );
-        return;
-      }
+        return `<article class="employee-row">
+          <strong>${escapeHTML(employee.full_name || "Sin nombre")}</strong>
+          <p class="muted">Departamento: ${escapeHTML(dept?.name || "No asignado")}</p>
+          <p>Rol: ${escapeHTML(employee.role || "employee")}</p>
+          <p>Estado: <span class="${isActive ? "status-active" : "status-inactive"}">${isActive ? "Activo" : "Inactivo"}</span></p>
+          ${
+            employee.role === "employee"
+              ? `<button type="button" class="${isActive ? "danger" : "primary"} employee-toggle"
+                    data-id="${escapeHTML(employee.id)}"
+                    data-active="${isActive ? "false" : "true"}"
+                    ${employee.id === currentUser.id ? "disabled" : ""}>
+                    ${isActive ? "Desactivar cuenta" : "Activar cuenta"}
+                 </button>`
+              : ""
+          }
+        </article>`;
+      }).join("");
+    } catch (error) {
+      console.error("Error al cargar empleados:", error);
+      $("employeeList").textContent = `No se pudo cargar la lista: ${error.message}`;
+    } finally {
+      $("refreshEmployeesBtn").disabled = false;
+    }
+  }
 
-      if (
-        !$("activityDate").value ||
-        !$("title").value.trim() ||
-        !$("description").value.trim()
-      ) {
-        showFormMessage(
-          "Completa la fecha, el título y la descripción."
-        );
-        return;
-      }
+  $("employeeForm").addEventListener("submit", async event => {
+    event.preventDefault();
 
-      $("saveBtn").disabled = true;
-      showFormMessage("Guardando actividad...");
+    if (!profile || profile.role !== "admin") {
+      showEmployeeMessage("Solo el administrador puede crear empleados.");
+      return;
+    }
 
-      try {
-        const deadlineValue = $("deadline").value;
+    const name = $("employeeName").value.trim();
+    const email = $("employeeEmail").value.trim();
+    const password = $("employeePassword").value;
+    const department_id = Number($("employeeDepartment").value);
 
-        const activity = {
-          user_id: currentUser.id,
-          department_id: departmentId,
-          title: $("title").value.trim(),
-          activity_date: $("activityDate").value,
-          activity_time: $("activityTime").value || null,
-          description: $("description").value.trim(),
-          deadline_met:
-            deadlineValue === ""
-              ? null
-              : deadlineValue === "true",
-          observations: $("observations").value.trim(),
-          status: $("status").value,
-          updated_at: new Date().toISOString()
-        };
+    if (!name || !email || password.length < 10 || !department_id) {
+      showEmployeeMessage("Completa todos los campos. La contraseña debe tener al menos 10 caracteres.");
+      return;
+    }
 
-        const { error } = await db
-          .from("activities")
-          .insert(activity);
+    $("createEmployeeBtn").disabled = true;
+    showEmployeeMessage("Creando cuenta de empleado...");
 
-        if (error) {
-          console.error("Error al guardar actividad:", error);
-          showFormMessage(
-            "No se pudo guardar la actividad. Verifica los permisos de Supabase."
-          );
-          return;
-        }
+    try {
+      const result = await invokeEmployeeAdmin({
+        action: "create", name, email, password, department_id
+      });
 
-        showFormMessage("Actividad guardada correctamente.");
+      showEmployeeMessage(result.message || "Empleado creado correctamente.");
+      $("employeeForm").reset();
+      await loadEmployees();
+    } catch (error) {
+      console.error("Error al crear empleado:", error);
+      showEmployeeMessage(`No se pudo crear el empleado: ${error.message}`);
+    } finally {
+      $("createEmployeeBtn").disabled = false;
+    }
+  });
 
-        $("activityForm").reset();
-        $("activityDate").value = localDate(new Date());
-        $("status").value = "En proceso";
+  $("employeeList").addEventListener("click", async event => {
+    const button = event.target.closest(".employee-toggle");
+    if (!button || !profile || profile.role !== "admin") return;
 
-        if (profile.role !== "admin") {
-          $("department").value = String(profile.department_id);
-        }
+    const employee_id = button.dataset.id;
+    const active = button.dataset.active === "true";
+    const confirmText = active
+      ? "¿Deseas activar esta cuenta?"
+      : "¿Deseas desactivar esta cuenta? El empleado perderá el acceso.";
 
-        if (profile.role === "admin") {
-          await loadActivities();
-        }
-      } catch (error) {
-        console.error(error);
-        showFormMessage(
-          "Ocurrió un error al guardar la actividad."
-        );
-      } finally {
-        $("saveBtn").disabled = false;
-      }
-    });
+    if (!window.confirm(confirmText)) return;
 
-    // CONTROLES DEL REPORTE: ADMINISTRADOR
-    $("refreshBtn").addEventListener("click", () => {
-      if (profile?.role === "admin") loadActivities();
-    });
+    button.disabled = true;
+    try {
+      const result = await invokeEmployeeAdmin({
+        action: "set-active", employee_id, active
+      });
+      showEmployeeMessage(result.message || "Estado actualizado.");
+      await loadEmployees();
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      showEmployeeMessage(`No se pudo actualizar la cuenta: ${error.message}`);
+      button.disabled = false;
+    }
+  });
 
-    $("reportWeek").addEventListener("change", () => {
-      if (profile?.role === "admin") loadActivities();
-    });
+  $("refreshEmployeesBtn").addEventListener("click", () => {
+    if (profile?.role === "admin") loadEmployees();
+  });
 
-    $("reportDepartment").addEventListener("change", () => {
-      if (profile?.role === "admin") loadActivities();
-    });
+  $("loginForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    $("loginBtn").disabled = true;
+    showMessage("Verificando acceso...");
 
-    $("printBtn").addEventListener("click", () => {
-      if (profile?.role !== "admin") {
-        showMessage(
-          "Solo el administrador puede imprimir los reportes generales."
-        );
-        return;
-      }
-
-      window.print();
-    });
-
-    // CERRAR SESIÓN
-    $("logoutBtn").addEventListener("click", async () => {
-      const { error } = await db.auth.signOut();
-
+    try {
+      const { error } = await db.auth.signInWithPassword({
+        email: $("email").value.trim(),
+        password: $("password").value
+      });
       if (error) {
-        showMessage("No se pudo cerrar la sesión.");
+        showMessage("No se pudo iniciar sesión. Comprueba tus credenciales.");
+        return;
+      }
+      await loadDashboard();
+    } catch (error) {
+      console.error(error);
+      showMessage("No se pudo conectar con Supabase.");
+    } finally {
+      $("loginBtn").disabled = false;
+    }
+  });
+
+  $("activityForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    if (!currentUser || !profile) {
+      showFormMessage("Inicia sesión nuevamente.");
+      return;
+    }
+
+    const departmentId = Number($("department").value);
+    if (profile.role !== "admin" && departmentId !== Number(profile.department_id)) {
+      showFormMessage("No puedes registrar actividades en otro departamento.");
+      return;
+    }
+
+    if (!$("activityDate").value || !$("title").value.trim() || !$("description").value.trim()) {
+      showFormMessage("Completa la fecha, el título y la descripción.");
+      return;
+    }
+
+    $("saveBtn").disabled = true;
+    showFormMessage("Guardando actividad...");
+
+    try {
+      const deadlineValue = $("deadline").value;
+      const activity = {
+        user_id: currentUser.id,
+        department_id: departmentId,
+        title: $("title").value.trim(),
+        activity_date: $("activityDate").value,
+        activity_time: $("activityTime").value || null,
+        description: $("description").value.trim(),
+        deadline_met: deadlineValue === "" ? null : deadlineValue === "true",
+        observations: $("observations").value.trim(),
+        status: $("status").value,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await db.from("activities").insert(activity);
+      if (error) {
+        console.error("Error al guardar actividad:", error);
+        showFormMessage("No se pudo guardar la actividad. Verifica los permisos de Supabase.");
         return;
       }
 
-      showLoggedOut();
-      showMessage("Sesión cerrada.");
-    });
+      showFormMessage("Actividad guardada correctamente.");
+      $("activityForm").reset();
+      $("activityDate").value = localDate(new Date());
+      $("status").value = "En proceso";
 
-    // RECUPERAR SESIÓN EXISTENTE Y CARGAR APLICACIÓN
-    db.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT" || !session) {
-        showLoggedOut();
+      if (profile.role !== "admin") {
+        $("department").value = String(profile.department_id);
       }
-    });
-
-    loadDashboard().catch(error => {
+      if (profile.role === "admin") await loadActivities();
+    } catch (error) {
       console.error(error);
-      showMessage("Ocurrió un error al iniciar la aplicación.");
-    });
-  </script>
+      showFormMessage("Ocurrió un error al guardar la actividad.");
+    } finally {
+      $("saveBtn").disabled = false;
+    }
+  });
+
+  $("refreshBtn").addEventListener("click", () => {
+    if (profile?.role === "admin") loadActivities();
+  });
+  $("reportWeek").addEventListener("change", () => {
+    if (profile?.role === "admin") loadActivities();
+  });
+  $("reportDepartment").addEventListener("change", () => {
+    if (profile?.role === "admin") loadActivities();
+  });
+
+  $("printBtn").addEventListener("click", () => {
+    if (profile?.role !== "admin") {
+      showMessage("Solo el administrador puede imprimir los reportes generales.");
+      return;
+    }
+    window.print();
+  });
+
+  $("logoutBtn").addEventListener("click", async () => {
+    const { error } = await db.auth.signOut();
+    if (error) {
+      showMessage("No se pudo cerrar la sesión.");
+      return;
+    }
+    showLoggedOut();
+    showMessage("Sesión cerrada.");
+  });
+
+  db.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT" || !session) showLoggedOut();
+  });
+
+  loadDashboard().catch(error => {
+    console.error(error);
+    showMessage("Ocurrió un error al iniciar la aplicación.");
+  });
+</script>
 </body>
 </html>
