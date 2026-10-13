@@ -1,12 +1,10 @@
 
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Human Test Center | Actividades</title>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -54,40 +52,21 @@
       font: inherit;
     }
 
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
+    textarea { min-height: 90px; resize: vertical; }
 
     button {
       border: 0;
       border-radius: 6px;
       padding: 12px 16px;
-      margin-top: 14px;
+      margin: 14px 8px 0 0;
       cursor: pointer;
       font-weight: bold;
     }
 
-    button:disabled {
-      opacity: .6;
-      cursor: wait;
-    }
-
-    .primary {
-      background: #1768ac;
-      color: white;
-    }
-
-    .secondary {
-      background: #e2e8f0;
-      color: #1e293b;
-    }
-
-    .logout {
-      background: #b91c1c;
-      color: white;
-    }
-
+    button:disabled { opacity: .6; cursor: wait; }
+    .primary { background: #1768ac; color: white; }
+    .secondary { background: #e2e8f0; color: #1e293b; }
+    .logout { background: #b91c1c; color: white; }
     .hidden { display: none !important; }
 
     .grid {
@@ -106,15 +85,7 @@
       overflow-wrap: anywhere;
     }
 
-    .muted {
-      color: #64748b;
-      font-size: 14px;
-    }
-
-    #mensaje, #formMessage {
-      overflow-wrap: anywhere;
-    }
-
+    .muted { color: #64748b; font-size: 14px; }
     .status {
       display: inline-block;
       padding: 4px 9px;
@@ -122,6 +93,8 @@
       border-radius: 12px;
       font-size: 13px;
     }
+
+    #mensaje, #formMessage { overflow-wrap: anywhere; }
 
     @media (max-width: 600px) {
       main { padding: 12px; }
@@ -141,19 +114,9 @@
       #printBtn, #refreshBtn {
         display: none !important;
       }
-      main {
-        max-width: 100%;
-        margin: 0;
-        padding: 0;
-      }
-      .panel {
-        box-shadow: none;
-        border: none;
-        padding: 5px;
-      }
-      .activity {
-        break-inside: avoid;
-      }
+      main { max-width: 100%; margin: 0; padding: 0; }
+      .panel { box-shadow: none; border: none; padding: 5px; }
+      .activity { break-inside: avoid; }
     }
   </style>
 </head>
@@ -167,23 +130,13 @@
   <main>
     <section id="loginPanel" class="panel">
       <h2>Iniciar sesión</h2>
-
       <form id="loginForm">
         <label for="email">Correo electrónico</label>
-        <input
-          id="email"
-          type="email"
-          autocomplete="username"
-          required
-        >
+        <input id="email" type="email" autocomplete="username" required>
 
         <label for="password">Contraseña</label>
-        <input
-          id="password"
-          type="password"
-          autocomplete="current-password"
-          required
-        >
+        <input id="password" type="password"
+               autocomplete="current-password" required>
 
         <button class="primary" id="loginBtn" type="submit">
           Iniciar sesión
@@ -221,18 +174,11 @@
 
             <div class="full">
               <label for="title">Título de la actividad</label>
-              <input
-                id="title"
-                type="text"
-                maxlength="200"
-                required
-              >
+              <input id="title" type="text" maxlength="200" required>
             </div>
 
             <div class="full">
-              <label for="description">
-                Descripción del trabajo realizado
-              </label>
+              <label for="description">Descripción del trabajo realizado</label>
               <textarea id="description" required></textarea>
             </div>
 
@@ -249,7 +195,7 @@
               <label for="status">Estado</label>
               <select id="status" required>
                 <option value="Pendiente">Pendiente</option>
-                <option value="En proceso">En proceso</option>
+                <option value="En proceso" selected>En proceso</option>
                 <option value="Completada">Completada</option>
               </select>
             </div>
@@ -264,7 +210,6 @@
             Guardar actividad
           </button>
         </form>
-
         <p id="formMessage" role="status" aria-live="polite"></p>
       </div>
 
@@ -276,7 +221,6 @@
             <label for="reportWeek">Semana del reporte</label>
             <input id="reportWeek" type="week" required>
           </div>
-
           <div>
             <label for="reportDepartment">Departamento</label>
             <select id="reportDepartment"></select>
@@ -284,11 +228,11 @@
         </div>
 
         <p id="weekLabel" class="muted"></p>
+        <p id="reportCount" class="muted"></p>
 
         <button id="refreshBtn" class="primary" type="button">
           Consultar reporte
         </button>
-
         <button id="printBtn" class="secondary" type="button">
           Imprimir / Guardar en PDF
         </button>
@@ -318,75 +262,66 @@
     let profile = null;
     let departments = [];
 
-    function localDate(date) {
+    function localDate(date = new Date()) {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
-
       return `${year}-${month}-${day}`;
     }
 
     function getISOWeekValue(date = new Date()) {
       const d = new Date(Date.UTC(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate()
+        date.getFullYear(), date.getMonth(), date.getDate()
       ));
 
-      const day = (d.getUTCDay() + 6) % 7;
-      d.setUTCDate(d.getUTCDate() - day + 3);
+      d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + 3);
 
-      const isoYear = d.getUTCFullYear();
-      const firstThursday = new Date(Date.UTC(isoYear, 0, 4));
-      const firstDay = (firstThursday.getUTCDay() + 6) % 7;
-
-      firstThursday.setUTCDate(
-        firstThursday.getUTCDate() - firstDay + 3
+      const year = d.getUTCFullYear();
+      const jan4 = new Date(Date.UTC(year, 0, 4));
+      jan4.setUTCDate(
+        jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7) + 3
       );
 
       const week = 1 + Math.round(
-        (d.getTime() - firstThursday.getTime()) / 604800000
+        (d.getTime() - jan4.getTime()) / 604800000
       );
 
-      return `${isoYear}-W${String(week).padStart(2, "0")}`;
+      return `${year}-W${String(week).padStart(2, "0")}`;
     }
 
-    function getWeekRange(weekValue) {
-      const match = weekValue.match(/^(\d{4})-W(\d{2})$/);
-
+    function getWeekRange(value) {
+      const match = /^(\d{4})-W(\d{2})$/.exec(value || "");
       if (!match) return null;
 
       const year = Number(match[1]);
       const week = Number(match[2]);
-
       if (week < 1 || week > 53) return null;
 
       const jan4 = new Date(Date.UTC(year, 0, 4));
       const monday = new Date(jan4);
-
       monday.setUTCDate(
         jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7)
           + (week - 1) * 7
       );
 
-      // Comprobar que la semana ISO seleccionada existe.
-      if (getISOWeekValue(
-        new Date(Date.UTC(
-          monday.getUTCFullYear(),
-          monday.getUTCMonth(),
-          monday.getUTCDate()
-        ))
-      ) !== weekValue) {
-        return null;
-      }
+      const check = getISOWeekValue(monday);
+      if (check !== value) return null;
 
       const sunday = new Date(monday);
-      sunday.setUTCDate(monday.getUTCDate() + 6);
+      sunday.setUTCDate(sunday.getUTCDate() + 6);
 
       return {
-        start: monday.toISOString().slice(0, 10),
-        end: sunday.toISOString().slice(0, 10)
+        start: localDateUTC(monday),
+        end: localDateUTC(sunday)
       };
+    }
+
+    function localDateUTC(date) {
+      return [
+        date.getUTCFullYear(),
+        String(date.getUTCMonth() + 1).padStart(2, "0"),
+        String(date.getUTCDate()).padStart(2, "0")
+      ].join("-");
     }
 
     function escapeHTML(value) {
@@ -399,68 +334,56 @@
       })[char]);
     }
 
-    function showMessage(text) {
-      $("mensaje").textContent = text;
+    function showMessage(message) {
+      $("mensaje").textContent = message;
     }
 
-    function showFormMessage(text) {
-      $("formMessage").textContent = text;
+    function showFormMessage(message) {
+      $("formMessage").textContent = message;
     }
 
     function showLoggedOut() {
       currentUser = null;
       profile = null;
-
       $("loginPanel").classList.remove("hidden");
       $("appPanel").classList.add("hidden");
     }
 
     function configureDepartmentSelects() {
       const isAdmin = profile.role === "admin";
-
-      const allowedDepartments = isAdmin
+      const allowed = isAdmin
         ? departments
         : departments.filter(
-            dept => String(dept.id) === String(profile.department_id)
+            d => String(d.id) === String(profile.department_id)
           );
 
-      const activitySelect = $("department");
-      activitySelect.replaceChildren();
+      $("department").replaceChildren();
 
-      allowedDepartments.forEach(dept => {
-        const option = document.createElement("option");
-        option.value = dept.id;
-        option.textContent = dept.name;
-        activitySelect.appendChild(option);
+      allowed.forEach(dept => {
+        const option = new Option(dept.name, dept.id);
+        $("department").add(option);
       });
 
-      activitySelect.disabled = !isAdmin;
+      $("department").disabled = !isAdmin;
 
-      const reportSelect = $("reportDepartment");
-      reportSelect.replaceChildren();
+      $("reportDepartment").replaceChildren();
 
       if (isAdmin) {
-        const allOption = document.createElement("option");
-        allOption.value = "all";
-        allOption.textContent = "Todos los departamentos";
-        reportSelect.appendChild(allOption);
+        $("reportDepartment").add(
+          new Option("Todos los departamentos", "all")
+        );
       }
 
-      allowedDepartments.forEach(dept => {
-        const option = document.createElement("option");
-        option.value = dept.id;
-        option.textContent = dept.name;
-        reportSelect.appendChild(option);
+      allowed.forEach(dept => {
+        $("reportDepartment").add(new Option(dept.name, dept.id));
       });
 
       $("reportWeek").value = getISOWeekValue();
     }
 
     async function loadDashboard() {
-      const {
-        data: sessionData,
-        error: sessionError
-      } = await db.auth.getSession();
+      const { data: sessionData, error: sessionError } =
+        await db.auth.getSession();
 
       if (sessionError) {
         showLoggedOut();
@@ -475,10 +398,7 @@
 
       currentUser = sessionData.session.user;
 
-      const {
-        data: userProfile,
-        error: profileError
-      } = await db
+      const { data: userProfile, error: profileError } = await db
         .from("profiles")
         .select("id, full_name, department_id, role, active")
         .eq("id", currentUser.id)
@@ -486,20 +406,16 @@
 
       if (profileError || !userProfile || !userProfile.active) {
         showLoggedOut();
-        showMessage(
-          "No se pudo validar tu perfil. Contacta al administrador."
-        );
+        showMessage("No se pudo validar tu perfil. Contacta al administrador.");
         return;
       }
 
       profile = userProfile;
 
-      const {
-        data: deptData,
-        error: deptError
-      } = await db
+      const { data: deptData, error: deptError } = await db
         .from("departments")
         .select("id, name")
+        .eq("active", true)
         .order("id");
 
       if (deptError || !deptData) {
@@ -512,10 +428,10 @@
       if (
         profile.role !== "admin" &&
         !departments.some(
-          dept => String(dept.id) === String(profile.department_id)
+          d => String(d.id) === String(profile.department_id)
         )
       ) {
-        showMessage("Tu perfil no tiene un departamento válido asignado.");
+        showMessage("Tu perfil no tiene un departamento activo asignado.");
         return;
       }
 
@@ -523,12 +439,11 @@
       $("appPanel").classList.remove("hidden");
 
       $("usuarioInfo").textContent =
-        `Usuario: ${profile.full_name} (${currentUser.email}) · ` +
-        `Rol: ${profile.role}`;
+        `Usuario: ${profile.full_name || currentUser.email} ` +
+        `(${currentUser.email}) · Rol: ${profile.role}`;
 
       configureDepartmentSelects();
-
-      $("activityDate").value = localDate(new Date());
+      $("activityDate").value = localDate();
       $("status").value = "En proceso";
 
       showMessage("");
@@ -541,40 +456,42 @@
       const weekValue = $("reportWeek").value;
       const departmentValue = $("reportDepartment").value;
 
-      if (!weekValue) {
-        $("activityList").textContent = "Selecciona una semana.";
-        return;
-      }
+      $("reportCount").textContent = "";
+      $("activityList").replaceChildren();
 
       const range = getWeekRange(weekValue);
 
       if (!range) {
+        $("weekLabel").textContent = "";
         $("activityList").textContent =
-          "La semana seleccionada no es válida.";
+          "Selecciona una semana válida para consultar.";
         return;
       }
 
       $("weekLabel").textContent =
-        `Periodo: ${range.start} al ${range.end}`;
+        `Periodo del reporte: ${range.start} al ${range.end}`;
 
-      $("activityList").textContent = "Consultando reporte...";
+      $("activityList").textContent = "Consultando actividades...";
 
       let query = db
         .from("activities")
         .select(
-          "id, department_id, title, activity_date, activity_time, " +
-          "description, deadline_met, observations, status"
+          "id, user_id, department_id, title, activity_date, " +
+          "activity_time, description, deadline_met, observations, status"
         )
         .gte("activity_date", range.start)
         .lte("activity_date", range.end)
         .order("activity_date", { ascending: false })
         .order("activity_time", { ascending: false });
 
-      if (departmentValue !== "all") {
-        query = query.eq(
-          "department_id",
-          Number(departmentValue)
-        );
+      // Solo el administrador puede consultar todos los departamentos.
+      if (profile.role === "admin") {
+        if (departmentValue !== "all") {
+          query = query.eq("department_id", Number(departmentValue));
+        }
+      } else {
+        // Mantener al empleado limitado a su propio departamento.
+        query = query.eq("department_id", Number(profile.department_id));
       }
 
       const { data, error } = await query;
@@ -582,19 +499,24 @@
       if (error) {
         console.error("Error del reporte:", error);
         $("activityList").textContent =
-          "No se pudo consultar el reporte. Verifica los permisos.";
+          "Error al consultar el reporte: " + error.message;
         return;
       }
 
-      if (!data || data.length === 0) {
+      const activities = data || [];
+      $("reportCount").textContent =
+        `Actividades encontradas: ${activities.length}`;
+
+      if (activities.length === 0) {
         $("activityList").textContent =
-          "No hay actividades para los filtros seleccionados.";
+          "No se encontraron actividades en esta semana y departamento. " +
+          "Verifica la fecha registrada y el filtro seleccionado.";
         return;
       }
 
-      $("activityList").innerHTML = data.map(activity => {
+      $("activityList").innerHTML = activities.map(activity => {
         const dept = departments.find(
-          item => String(item.id) === String(activity.department_id)
+          d => String(d.id) === String(activity.department_id)
         );
 
         const deadline = activity.deadline_met === null
@@ -606,25 +528,24 @@
             <strong>${escapeHTML(activity.title)}</strong>
 
             <p class="muted">
-              ${escapeHTML(dept?.name || "Departamento")}
-              · ${escapeHTML(activity.activity_date)}
+              Departamento: ${escapeHTML(dept?.name || "No identificado")}
+              · Fecha: ${escapeHTML(activity.activity_date)}
               ${activity.activity_time
-                ? " · " + escapeHTML(activity.activity_time)
+                ? " · Hora: " + escapeHTML(activity.activity_time)
                 : ""}
             </p>
 
-            <p>${escapeHTML(activity.description)}</p>
+            <p><strong>Descripción:</strong><br>
+              ${escapeHTML(activity.description)}</p>
 
-            <p>
-              <strong>Estado:</strong>
+            <p><strong>Estado:</strong>
               <span class="status">${escapeHTML(activity.status)}</span>
             </p>
 
             <p><strong>Plazo cumplido:</strong> ${deadline}</p>
 
             <p><strong>Observaciones:</strong>
-              ${escapeHTML(activity.observations || "Ninguna")}
-            </p>
+              ${escapeHTML(activity.observations || "Ninguna")}</p>
           </article>
         `;
       }).join("");
@@ -632,7 +553,6 @@
 
     $("loginForm").addEventListener("submit", async event => {
       event.preventDefault();
-
       $("loginBtn").disabled = true;
       showMessage("Verificando acceso...");
 
@@ -643,9 +563,7 @@
         });
 
         if (error) {
-          showMessage(
-            "No se pudo iniciar sesión. Comprueba tus credenciales."
-          );
+          showMessage("No se pudo iniciar sesión. Comprueba tus credenciales.");
           return;
         }
 
@@ -672,9 +590,7 @@
         profile.role !== "admin" &&
         departmentId !== Number(profile.department_id)
       ) {
-        showFormMessage(
-          "No puedes registrar actividades en otro departamento."
-        );
+        showFormMessage("No puedes registrar actividades en otro departamento.");
         return;
       }
 
@@ -698,15 +614,11 @@
           status: $("status").value
         };
 
-        const { error } = await db
-          .from("activities")
-          .insert(activity);
+        const { error } = await db.from("activities").insert(activity);
 
         if (error) {
-          console.error("Error de registro:", error);
-          showFormMessage(
-            "No se pudo guardar la actividad. Revisa los campos y permisos."
-          );
+          console.error("Error al guardar:", error);
+          showFormMessage("No se pudo guardar: " + error.message);
           return;
         }
 
@@ -719,771 +631,14 @@
         $("status").value = "En proceso";
         $("observations").value = "";
 
-        await loadActivities();
-      } catch (error) {
-        console.error(error);
-        showFormMessage("Ocurrió un error al guardar la actividad.");
-      } finally {
-        $("saveBtn").disabled = false;
-      }
-    });
+        // Actualizar el reporte con la semana de la actividad guardada.
+        $("reportWeek").value = getISOWeekValue(
+          new Date($("activityDate").value + "T12:00:00")
+        );
 
-    $("refreshBtn").addEventListener("click", loadActivities);
-
-    $("reportWeek").addEventListener("change", loadActivities);
-    $("reportDepartment").addEventListener("change", loadActivities);
-
-    $("printBtn").addEventListener("click", () => {
-      window.print();
-    });
-
-    $("logoutBtn").addEventListener("click", async () => {
-      $("logoutBtn").disabled = true;
-
-      try {
-        const { error } = await db.auth.signOut();
-
-        if (error) {
-          showMessage("No se pudo cerrar la sesión.");
-          return;
+        if (profile.role === "admin") {
+          $("reportDepartment").value = String(departmentId);
         }
-
-        showLoggedOut();
-        showMessage("Sesión cerrada.");
-      } catch (error) {
-        console.error(error);
-        showMessage("Ocurrió un error al cerrar sesión.");
-      } finally {
-        $("logoutBtn").disabled = false;
-      }
-    });
-
-    loadDashboard().catch(error => {
-      console.error(error);
-      showMessage("Ocurrió un error al iniciar la aplicación.");
-    });
-  </script>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Human Test Center | Actividades</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f1f5f9;
-      color: #1e293b;
-    }
-
-    header {
-      background: #12345a;
-      color: white;
-      padding: 22px;
-      text-align: center;
-    }
-
-    main {
-      max-width: 950px;
-      margin: 25px auto;
-      padding: 20px;
-    }
-
-    .panel {
-      background: white;
-      padding: 22px;
-      margin-bottom: 20px;
-      border-radius: 12px;
-      box-shadow: 0 3px 12px #00000010;
-    }
-
-    label {
-      display: block;
-      font-weight: bold;
-      margin: 14px 0 6px;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 11px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font: inherit;
-    }
-
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
-
-    button {
-      border: 0;
-      border-radius: 6px;
-      padding: 12px 16px;
-      margin-top: 14px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    button:disabled {
-      opacity: .6;
-      cursor: wait;
-    }
-
-    .primary {
-      background: #1768ac;
-      color: white;
-    }
-
-    .secondary {
-      background: #e2e8f0;
-      color: #1e293b;
-    }
-
-    .logout {
-      background: #b91c1c;
-      color: white;
-    }
-
-    .hidden { display: none !important; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0 18px;
-    }
-
-    .full { grid-column: 1 / -1; }
-
-    .activity {
-      border: 1px solid #dbe3ed;
-      border-radius: 8px;
-      padding: 14px;
-      margin-top: 12px;
-      overflow-wrap: anywhere;
-    }
-
-    .muted {
-      color: #64748b;
-      font-size: 14px;
-    }
-
-    #mensaje, #formMessage {
-      overflow-wrap: anywhere;
-    }
-
-    .status {
-      display: inline-block;
-      padding: 4px 9px;
-      background: #e2e8f0;
-      border-radius: 12px;
-      font-size: 13px;
-    }
-
-    @media (max-width: 600px) {
-      main { padding: 12px; }
-      .grid { grid-template-columns: 1fr; }
-      .full { grid-column: auto; }
-    }
-
-    @media print {
-      body { background: white; }
-      header {
-        background: white;
-        color: black;
-        border-bottom: 2px solid #12345a;
-      }
-      #loginPanel, #activityFormPanel, #sessionPanel,
-      #reportControls, #mensaje, #formMessage,
-      #printBtn, #refreshBtn {
-        display: none !important;
-      }
-      main {
-        max-width: 100%;
-        margin: 0;
-        padding: 0;
-      }
-      .panel {
-        box-shadow: none;
-        border: none;
-        padding: 5px;
-      }
-      .activity {
-        break-inside: avoid;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <header>
-    <h1>Human Test Center</h1>
-    <p>Sistema de Registro de Actividades</p>
-  </header>
-
-  <main>
-    <section id="loginPanel" class="panel">
-      <h2>Iniciar sesión</h2>
-
-      <form id="loginForm">
-        <label for="email">Correo electrónico</label>
-        <input
-          id="email"
-          type="email"
-          autocomplete="username"
-          required
-        >
-
-        <label for="password">Contraseña</label>
-        <input
-          id="password"
-          type="password"
-          autocomplete="current-password"
-          required
-        >
-
-        <button class="primary" id="loginBtn" type="submit">
-          Iniciar sesión
-        </button>
-      </form>
-    </section>
-
-    <section id="appPanel" class="hidden">
-      <div id="sessionPanel" class="panel">
-        <div id="usuarioInfo"></div>
-        <button id="logoutBtn" class="logout" type="button">
-          Cerrar sesión
-        </button>
-      </div>
-
-      <div id="activityFormPanel" class="panel">
-        <h2>Registrar actividad</h2>
-
-        <form id="activityForm">
-          <div class="grid">
-            <div class="full">
-              <label for="department">Departamento</label>
-              <select id="department" required></select>
-            </div>
-
-            <div>
-              <label for="activityDate">Fecha</label>
-              <input id="activityDate" type="date" required>
-            </div>
-
-            <div>
-              <label for="activityTime">Hora (opcional)</label>
-              <input id="activityTime" type="time">
-            </div>
-
-            <div class="full">
-              <label for="title">Título de la actividad</label>
-              <input
-                id="title"
-                type="text"
-                maxlength="200"
-                required
-              >
-            </div>
-
-            <div class="full">
-              <label for="description">
-                Descripción del trabajo realizado
-              </label>
-              <textarea id="description" required></textarea>
-            </div>
-
-            <div>
-              <label for="deadline">¿Se cumplió el plazo?</label>
-              <select id="deadline">
-                <option value="">Sin indicar</option>
-                <option value="true">Sí</option>
-                <option value="false">No</option>
-              </select>
-            </div>
-
-            <div>
-              <label for="status">Estado</label>
-              <select id="status" required>
-                <option value="Pendiente">Pendiente</option>
-                <option value="En proceso">En proceso</option>
-                <option value="Completada">Completada</option>
-              </select>
-            </div>
-
-            <div class="full">
-              <label for="observations">Observaciones</label>
-              <textarea id="observations"></textarea>
-            </div>
-          </div>
-
-          <button id="saveBtn" class="primary" type="submit">
-            Guardar actividad
-          </button>
-        </form>
-
-        <p id="formMessage" role="status" aria-live="polite"></p>
-      </div>
-
-      <div class="panel">
-        <h2>Reportes semanales por departamento</h2>
-
-        <div id="reportControls" class="grid">
-          <div>
-            <label for="reportWeek">Semana del reporte</label>
-            <input id="reportWeek" type="week" required>
-          </div>
-
-          <div>
-            <label for="reportDepartment">Departamento</label>
-            <select id="reportDepartment"></select>
-          </div>
-        </div>
-
-        <p id="weekLabel" class="muted"></p>
-
-        <button id="refreshBtn" class="primary" type="button">
-          Consultar reporte
-        </button>
-
-        <button id="printBtn" class="secondary" type="button">
-          Imprimir / Guardar en PDF
-        </button>
-
-        <div id="activityList" aria-live="polite"></div>
-      </div>
-    </section>
-
-    <p id="mensaje" role="status" aria-live="polite"></p>
-  </main>
-
-  <script>
-    const SUPABASE_URL =
-      "https://qzsyejizsjgubitzrdsj.supabase.co";
-
-    const SUPABASE_KEY =
-      "sb_publishable_b_aQlGzfTH_nitP5T5OwZg_zPwBPW-i";
-
-    const db = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
-
-    const $ = id => document.getElementById(id);
-
-    let currentUser = null;
-    let profile = null;
-    let departments = [];
-
-    function localDate(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-
-      return `${year}-${month}-${day}`;
-    }
-
-    function getISOWeekValue(date = new Date()) {
-      const d = new Date(Date.UTC(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate()
-      ));
-
-      const day = (d.getUTCDay() + 6) % 7;
-      d.setUTCDate(d.getUTCDate() - day + 3);
-
-      const isoYear = d.getUTCFullYear();
-      const firstThursday = new Date(Date.UTC(isoYear, 0, 4));
-      const firstDay = (firstThursday.getUTCDay() + 6) % 7;
-
-      firstThursday.setUTCDate(
-        firstThursday.getUTCDate() - firstDay + 3
-      );
-
-      const week = 1 + Math.round(
-        (d.getTime() - firstThursday.getTime()) / 604800000
-      );
-
-      return `${isoYear}-W${String(week).padStart(2, "0")}`;
-    }
-
-    function getWeekRange(weekValue) {
-      const match = weekValue.match(/^(\d{4})-W(\d{2})$/);
-
-      if (!match) return null;
-
-      const year = Number(match[1]);
-      const week = Number(match[2]);
-
-      if (week < 1 || week > 53) return null;
-
-      const jan4 = new Date(Date.UTC(year, 0, 4));
-      const monday = new Date(jan4);
-
-      monday.setUTCDate(
-        jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7)
-          + (week - 1) * 7
-      );
-
-      // Comprobar que la semana ISO seleccionada existe.
-      if (getISOWeekValue(
-        new Date(Date.UTC(
-          monday.getUTCFullYear(),
-          monday.getUTCMonth(),
-          monday.getUTCDate()
-        ))
-      ) !== weekValue) {
-        return null;
-      }
-
-      const sunday = new Date(monday);
-      sunday.setUTCDate(monday.getUTCDate() + 6);
-
-      return {
-        start: monday.toISOString().slice(0, 10),
-        end: sunday.toISOString().slice(0, 10)
-      };
-    }
-
-    function escapeHTML(value) {
-      return String(value ?? "").replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      })[char]);
-    }
-
-    function showMessage(text) {
-      $("mensaje").textContent = text;
-    }
-
-    function showFormMessage(text) {
-      $("formMessage").textContent = text;
-    }
-
-    function showLoggedOut() {
-      currentUser = null;
-      profile = null;
-
-      $("loginPanel").classList.remove("hidden");
-      $("appPanel").classList.add("hidden");
-    }
-
-    function configureDepartmentSelects() {
-      const isAdmin = profile.role === "admin";
-
-      const allowedDepartments = isAdmin
-        ? departments
-        : departments.filter(
-            dept => String(dept.id) === String(profile.department_id)
-          );
-
-      const activitySelect = $("department");
-      activitySelect.replaceChildren();
-
-      allowedDepartments.forEach(dept => {
-        const option = document.createElement("option");
-        option.value = dept.id;
-        option.textContent = dept.name;
-        activitySelect.appendChild(option);
-      });
-
-      activitySelect.disabled = !isAdmin;
-
-      const reportSelect = $("reportDepartment");
-      reportSelect.replaceChildren();
-
-      if (isAdmin) {
-        const allOption = document.createElement("option");
-        allOption.value = "all";
-        allOption.textContent = "Todos los departamentos";
-        reportSelect.appendChild(allOption);
-      }
-
-      allowedDepartments.forEach(dept => {
-        const option = document.createElement("option");
-        option.value = dept.id;
-        option.textContent = dept.name;
-        reportSelect.appendChild(option);
-      });
-
-      $("reportWeek").value = getISOWeekValue();
-    }
-
-    async function loadDashboard() {
-      const {
-        data: sessionData,
-        error: sessionError
-      } = await db.auth.getSession();
-
-      if (sessionError) {
-        showLoggedOut();
-        showMessage("No se pudo comprobar la sesión.");
-        return;
-      }
-
-      if (!sessionData.session) {
-        showLoggedOut();
-        return;
-      }
-
-      currentUser = sessionData.session.user;
-
-      const {
-        data: userProfile,
-        error: profileError
-      } = await db
-        .from("profiles")
-        .select("id, full_name, department_id, role, active")
-        .eq("id", currentUser.id)
-        .maybeSingle();
-
-      if (profileError || !userProfile || !userProfile.active) {
-        showLoggedOut();
-        showMessage(
-          "No se pudo validar tu perfil. Contacta al administrador."
-        );
-        return;
-      }
-
-      profile = userProfile;
-
-      const {
-        data: deptData,
-        error: deptError
-      } = await db
-        .from("departments")
-        .select("id, name")
-        .order("id");
-
-      if (deptError || !deptData) {
-        showMessage("No se pudieron cargar los departamentos.");
-        return;
-      }
-
-      departments = deptData;
-
-      if (
-        profile.role !== "admin" &&
-        !departments.some(
-          dept => String(dept.id) === String(profile.department_id)
-        )
-      ) {
-        showMessage("Tu perfil no tiene un departamento válido asignado.");
-        return;
-      }
-
-      $("loginPanel").classList.add("hidden");
-      $("appPanel").classList.remove("hidden");
-
-      $("usuarioInfo").textContent =
-        `Usuario: ${profile.full_name} (${currentUser.email}) · ` +
-        `Rol: ${profile.role}`;
-
-      configureDepartmentSelects();
-
-      $("activityDate").value = localDate(new Date());
-      $("status").value = "En proceso";
-
-      showMessage("");
-      await loadActivities();
-    }
-
-    async function loadActivities() {
-      if (!currentUser || !profile) return;
-
-      const weekValue = $("reportWeek").value;
-      const departmentValue = $("reportDepartment").value;
-
-      if (!weekValue) {
-        $("activityList").textContent = "Selecciona una semana.";
-        return;
-      }
-
-      const range = getWeekRange(weekValue);
-
-      if (!range) {
-        $("activityList").textContent =
-          "La semana seleccionada no es válida.";
-        return;
-      }
-
-      $("weekLabel").textContent =
-        `Periodo: ${range.start} al ${range.end}`;
-
-      $("activityList").textContent = "Consultando reporte...";
-
-      let query = db
-        .from("activities")
-        .select(
-          "id, department_id, title, activity_date, activity_time, " +
-          "description, deadline_met, observations, status"
-        )
-        .gte("activity_date", range.start)
-        .lte("activity_date", range.end)
-        .order("activity_date", { ascending: false })
-        .order("activity_time", { ascending: false });
-
-      if (departmentValue !== "all") {
-        query = query.eq(
-          "department_id",
-          Number(departmentValue)
-        );
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Error del reporte:", error);
-        $("activityList").textContent =
-          "No se pudo consultar el reporte. Verifica los permisos.";
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        $("activityList").textContent =
-          "No hay actividades para los filtros seleccionados.";
-        return;
-      }
-
-      $("activityList").innerHTML = data.map(activity => {
-        const dept = departments.find(
-          item => String(item.id) === String(activity.department_id)
-        );
-
-        const deadline = activity.deadline_met === null
-          ? "Sin indicar"
-          : activity.deadline_met ? "Sí" : "No";
-
-        return `
-          <article class="activity">
-            <strong>${escapeHTML(activity.title)}</strong>
-
-            <p class="muted">
-              ${escapeHTML(dept?.name || "Departamento")}
-              · ${escapeHTML(activity.activity_date)}
-              ${activity.activity_time
-                ? " · " + escapeHTML(activity.activity_time)
-                : ""}
-            </p>
-
-            <p>${escapeHTML(activity.description)}</p>
-
-            <p>
-              <strong>Estado:</strong>
-              <span class="status">${escapeHTML(activity.status)}</span>
-            </p>
-
-            <p><strong>Plazo cumplido:</strong> ${deadline}</p>
-
-            <p><strong>Observaciones:</strong>
-              ${escapeHTML(activity.observations || "Ninguna")}
-            </p>
-          </article>
-        `;
-      }).join("");
-    }
-
-    $("loginForm").addEventListener("submit", async event => {
-      event.preventDefault();
-
-      $("loginBtn").disabled = true;
-      showMessage("Verificando acceso...");
-
-      try {
-        const { error } = await db.auth.signInWithPassword({
-          email: $("email").value.trim(),
-          password: $("password").value
-        });
-
-        if (error) {
-          showMessage(
-            "No se pudo iniciar sesión. Comprueba tus credenciales."
-          );
-          return;
-        }
-
-        await loadDashboard();
-      } catch (error) {
-        console.error(error);
-        showMessage("No se pudo conectar con Supabase.");
-      } finally {
-        $("loginBtn").disabled = false;
-      }
-    });
-
-    $("activityForm").addEventListener("submit", async event => {
-      event.preventDefault();
-
-      if (!currentUser || !profile) {
-        showFormMessage("Inicia sesión nuevamente.");
-        return;
-      }
-
-      const departmentId = Number($("department").value);
-
-      if (
-        profile.role !== "admin" &&
-        departmentId !== Number(profile.department_id)
-      ) {
-        showFormMessage(
-          "No puedes registrar actividades en otro departamento."
-        );
-        return;
-      }
-
-      $("saveBtn").disabled = true;
-      showFormMessage("Guardando actividad...");
-
-      try {
-        const deadlineValue = $("deadline").value;
-
-        const activity = {
-          user_id: currentUser.id,
-          department_id: departmentId,
-          title: $("title").value.trim(),
-          activity_date: $("activityDate").value,
-          activity_time: $("activityTime").value || null,
-          description: $("description").value.trim(),
-          deadline_met: deadlineValue === ""
-            ? null
-            : deadlineValue === "true",
-          observations: $("observations").value.trim(),
-          status: $("status").value
-        };
-
-        const { error } = await db
-          .from("activities")
-          .insert(activity);
-
-        if (error) {
-          console.error("Error de registro:", error);
-          showFormMessage(
-            "No se pudo guardar la actividad. Revisa los campos y permisos."
-          );
-          return;
-        }
-
-        showFormMessage("Actividad guardada correctamente.");
-
-        $("title").value = "";
-        $("description").value = "";
-        $("activityTime").value = "";
-        $("deadline").value = "";
-        $("status").value = "En proceso";
-        $("observations").value = "";
 
         await loadActivities();
       } catch (error) {
@@ -1495,13 +650,10 @@
     });
 
     $("refreshBtn").addEventListener("click", loadActivities);
-
     $("reportWeek").addEventListener("change", loadActivities);
     $("reportDepartment").addEventListener("change", loadActivities);
 
-    $("printBtn").addEventListener("click", () => {
-      window.print();
-    });
+    $("printBtn").addEventListener("click", () => window.print());
 
     $("logoutBtn").addEventListener("click", async () => {
       $("logoutBtn").disabled = true;
