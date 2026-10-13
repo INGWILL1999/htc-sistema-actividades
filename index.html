@@ -304,7 +304,13 @@
           + (week - 1) * 7
       );
 
-      const check = getISOWeekValue(monday);
+      const check = getISOWeekValue(
+  new Date(
+    monday.getUTCFullYear(),
+    monday.getUTCMonth(),
+    monday.getUTCDate()
+  )
+);
       if (check !== value) return null;
 
       const sunday = new Date(monday);
