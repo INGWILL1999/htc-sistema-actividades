@@ -231,6 +231,42 @@
   function showMessage(text) { $("mensaje").textContent = text; }
   function showFormMessage(text) { $("formMessage").textContent = text; }
   function showEmployeeMessage(text) { $("employeeMessage").textContent = text; }
+  async function validateActiveProfile() {
+  const { data: sessionData, error: sessionError } =
+    await db.auth.getSession();
+
+  if (sessionError || !sessionData.session) {
+    currentUser = null;
+    profile = null;
+    showLoggedOut();
+    return false;
+  }
+
+  const sessionUser = sessionData.session.user;
+
+  const { data: userProfile, error: profileError } = await db
+    .from("profiles")
+    .select("id, full_name, department_id, role, active")
+    .eq("id", sessionUser.id)
+    .maybeSingle();
+
+  if (
+    profileError ||
+    !userProfile ||
+    userProfile.active !== true
+  ) {
+    await db.auth.signOut();
+    showLoggedOut();
+    showMessage(
+      "Tu cuenta está inactiva o no se pudo validar. Contacta al administrador."
+    );
+    return false;
+  }
+
+  currentUser = sessionUser;
+  profile = userProfile;
+  return true;
+}
 
   function showLoggedOut() {
     currentUser = null;
@@ -601,10 +637,19 @@
   $("activityForm").addEventListener("submit", async event => {
     event.preventDefault();
 
-    if (!currentUser || !profile) {
-      showFormMessage("Inicia sesión nuevamente.");
-      return;
-    }
+   if (!currentUser || !profile) {
+  showFormMessage("Inicia sesión nuevamente.");
+  return;
+}
+
+const isActive = await validateActiveProfile();
+
+if (!isActive) {
+  showFormMessage(
+    "Tu cuenta está inactiva. No puedes registrar actividades."
+  );
+  return;
+}
 
     const departmentId = Number($("department").value);
     if (profile.role !== "admin" && departmentId !== Number(profile.department_id)) {
@@ -645,7 +690,7 @@
       showFormMessage("Actividad guardada correctamente.");
       $("activityForm").reset();
       $("activityDate").value = localDate(new Date());
-      $("status").value = "En proceso";
+      $("status").value = "Pendiente";
 
       if (profile.role !== "admin") {
         $("department").value = String(profile.department_id);
