@@ -313,12 +313,20 @@ function localDate(date){
 }
 
 function getISOWeekValue(date){
+  // Usa la fecha de calendario local para la fecha actual y realiza
+  // todos los cálculos posteriores en UTC para evitar desfases de zona horaria.
   const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+  return getISOWeekValueUTC(d);
+}
+
+function getISOWeekValueUTC(date){
+  const d=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate()));
   const dayNum=d.getUTCDay()||7;
   d.setUTCDate(d.getUTCDate()+4-dayNum);
-  const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const isoYear=d.getUTCFullYear();
+  const yearStart=new Date(Date.UTC(isoYear,0,1));
   const week=Math.ceil((((d-yearStart)/86400000)+1)/7);
-  return `${d.getUTCFullYear()}-W${String(week).padStart(2,"0")}`;
+  return `${isoYear}-W${String(week).padStart(2,"0")}`;
 }
 
 function getWeekRange(value){
@@ -333,7 +341,9 @@ function getWeekRange(value){
   monday.setUTCDate(jan4.getUTCDate()-day+1+(week-1)*7);
 
   // Evita aceptar números de semana que no pertenecen al año ISO.
-  if(getISOWeekValue(new Date(monday))!==value)return null;
+  // La fecha monday se construyó en UTC: validarla también en UTC evita
+  // que una zona horaria al oeste de UTC la convierta al domingo anterior.
+  if(getISOWeekValueUTC(monday)!==value)return null;
 
   const sunday=new Date(monday);
   sunday.setUTCDate(monday.getUTCDate()+6);
