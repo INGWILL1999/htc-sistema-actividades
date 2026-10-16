@@ -183,6 +183,7 @@ hr{border:0;border-top:1px solid var(--border);margin:20px 0}
       <button id="refreshBtn" class="primary" type="button">Consultar reporte</button>
       <button id="printBtn" class="secondary" type="button">Imprimir / Guardar PDF</button>
     </div>
+    <p id="reportMessage" class="message" role="status" aria-live="polite"></p>
     <div id="activityList" aria-live="polite"></div>
 
     <hr>
@@ -372,6 +373,10 @@ function addField(parent,label,value,muted=false){
 }
 
 function showMessage(text){$("mensaje").textContent=text||""}
+function showReportMessage(text){
+  const element=$("reportMessage");
+  if(element)element.textContent=text||"";
+}
 function showFormMessage(text){$("formMessage").textContent=text||""}
 function showEmployeeMessage(text){$("employeeMessage").textContent=text||""}
 function showReopenMessage(text){$("reopenMessage").textContent=text||""}
@@ -609,6 +614,7 @@ async function loadAdminActivities(){
 
   const [startDate,endDate]=range;
   $("weekLabel").textContent=`Semana: ${startDate} al ${endDate}`;
+  showReportMessage("");
   const list=$("activityList");
   list.replaceChildren();
   list.textContent="Cargando actividades...";
@@ -638,7 +644,8 @@ async function loadAdminActivities(){
 
   if(error){
     console.error("Error al consultar actividades:",error);
-    list.textContent="No se pudieron cargar las actividades. Verifica los permisos de Supabase.";
+    list.textContent="No se pudieron cargar las actividades.";
+    showReportMessage(`Error de Supabase al consultar actividades: ${error.message||error.code||"error no identificado"}`);
     return;
   }
 
@@ -1373,23 +1380,25 @@ $("reportWeek").addEventListener("change",()=>{
 $("refreshBtn").addEventListener("click",async()=>{
   const button=$("refreshBtn");
   button.disabled=true;
-  showMessage("Verificando sesión y consultando el reporte...");
+  showReportMessage("Verificando sesión y consultando el reporte...");
   try{
+    console.info("[Reporte] Se presionó Consultar reporte.");
     const valid=await validateActiveProfile();
     if(!valid){
-      showMessage("La sesión no está activa. Inicia sesión nuevamente.");
+      showReportMessage("La sesión no está activa o no se pudo validar. Cierra sesión e inicia nuevamente.");
       return;
     }
     if(!isAdmin()){
-      showMessage(`El panel no reconoce un perfil administrador activo. Rol recibido: ${profile?.role||"sin rol"}; estado activo: ${String(profile?.active)}. Cierra sesión e inicia sesión nuevamente. No se modificó ningún dato.`);
+      showReportMessage(`El perfil no tiene permisos de administrador. Rol: ${profile?.role||"sin rol"}; activo: ${String(profile?.active)}.`);
       return;
     }
+    showReportMessage("Sesión validada. Consultando actividades...");
     await loadActivities();
-    showMessage("Consulta del reporte ejecutada. Revisa la sección de reportes para ver el resultado.");
+    showReportMessage("Consulta finalizada. Revisa la lista de actividades y el total mostrado.");
   }catch(error){
-    console.error("Error al actualizar el reporte:",error);
-    showMessage(`No se pudo ejecutar la consulta del reporte: ${error?.message||"error no identificado"}`);
-    $("activityList").textContent="No se pudo ejecutar la consulta. Revisa la sesión y vuelve a intentarlo.";
+    console.error("[Reporte] Error al consultar:",error);
+    showReportMessage(`No se pudo consultar el reporte: ${error?.message||"error no identificado"}`);
+    $("activityList").textContent="No se pudo consultar el reporte. Revisa el mensaje anterior y la consola del navegador.";
   }finally{
     button.disabled=false;
   }
