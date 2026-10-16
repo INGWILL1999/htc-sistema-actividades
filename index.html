@@ -115,6 +115,7 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
   button,select,input,textarea{box-shadow:none!important}
   a{color:#111;text-decoration:none}
 }
+.notice-card{border:1px solid var(--border,#dbe3ee);background:var(--surface-soft,#f5f8fc);border-radius:14px;padding:16px;margin:12px 0 20px}.notice-card p{margin:6px 0 0;color:var(--muted,#5b6778);line-height:1.55}
 </style>
 </head>
 <body>
@@ -163,6 +164,7 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
         <button type="button" class="nav-button active" data-view="activityFormPanel"><span class="nav-icon">✚</span>Registrar actividad</button>
         <button type="button" class="nav-button" data-view="adminReportsPanel" data-admin-only="true"><span class="nav-icon">▤</span>Reportes semanales</button>
         <button type="button" class="nav-button" data-view="myActivitiesPanel" data-employee-only="true"><span class="nav-icon">▧</span>Mis reportes</button>
+        <button type="button" class="nav-button" data-view="employeeReopenPanel" data-employee-only="true"><span class="nav-icon">↻</span>Solicitar reapertura</button>
         <button type="button" class="nav-button" data-view="adminReviewPanel" data-admin-only="true"><span class="nav-icon">✓</span>Revisión por empleado</button>
         <button type="button" class="nav-button" data-view="adminRequestsPanel" data-admin-only="true"><span class="nav-icon">↻</span>Solicitudes de reapertura</button>
         <button type="button" class="nav-button" data-view="adminAuditPanel" data-admin-only="true"><span class="nav-icon">◷</span>Bitácora</button>
@@ -294,22 +296,23 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
     </div>
     <div id="myActivityList" aria-live="polite"></div>
 
-    <section id="employeeReopenForm" class="hidden no-print">
-      <hr>
-      <h3>Solicitar reapertura del reporte</h3>
-      <p class="muted">Disponible cuando el reporte semanal está aceptado.</p>
-      <form id="reopenForm">
-        <label for="reopenReason">Motivo de la solicitud</label>
-        <textarea id="reopenReason" minlength="5" maxlength="2000" required></textarea>
-        <button id="requestReopenBtn" class="primary" type="submit">Enviar solicitud</button>
-      </form>
-      <p id="reopenMessage" class="message" role="status" aria-live="polite"></p>
-    </section>
+  </section>
 
-    <section id="employeeRequestsPanel" class="no-print">
-      <h3>Mis solicitudes de reapertura</h3>
-      <div id="myReopenRequests" aria-live="polite"></div>
-    </section>
+  <!-- SOLICITUDES DE REAPERTURA DEL EMPLEADO -->
+  <section id="employeeReopenPanel" class="panel hidden view-panel">
+    <div class="page-intro"><div><div class="kicker">Correcciones controladas</div><h2>Solicitar reapertura de una actividad</h2><p>Solicita autorización para corregir una semana que ya fue aprobada.</p></div></div>
+    <div class="notice-card"><strong>¿Cómo funciona?</strong><p>Selecciona la semana aprobada, explica qué necesitas corregir y envía la solicitud. La actividad no se desbloquea hasta que el administrador autorice la reapertura.</p></div>
+    <form id="reopenForm">
+      <div class="grid">
+        <div><label for="reopenWeek">Semana del reporte que necesitas corregir</label><input id="reopenWeek" type="week" required></div>
+        <div><label for="reopenReasonType">Motivo</label><select id="reopenReasonType" required><option value="">Selecciona un motivo</option><option value="Corrección de información">Corrección de información</option><option value="Actividad omitida">Actividad omitida</option><option value="Error en fecha, estado u observaciones">Error en fecha, estado u observaciones</option><option value="Otro motivo">Otro motivo</option></select></div>
+        <div class="full"><label for="reopenReason">Explica qué información necesitas corregir</label><textarea id="reopenReason" minlength="5" maxlength="2000" required placeholder="Describe el dato que debe corregirse y el motivo."></textarea></div>
+      </div>
+      <p id="reopenEligibility" class="muted" aria-live="polite">Selecciona una semana para comprobar si el reporte está aprobado.</p>
+      <button id="requestReopenBtn" class="primary" type="submit" disabled>Enviar solicitud de reapertura</button>
+    </form>
+    <p id="reopenMessage" class="message" role="status" aria-live="polite"></p>
+    <hr><h3>Mis solicitudes de reapertura</h3><p class="muted">Consulta el estado y la respuesta del administrador.</p><div id="myReopenRequests" aria-live="polite"></div>
   </section>
 
   <!-- SOLICITUDES DEL ADMINISTRADOR -->
@@ -616,12 +619,14 @@ async function loadDashboard(){
   $("adminAuditPanel").classList.toggle("hidden",!admin);
   $("adminReviewPanel").classList.toggle("hidden",!admin);
   $("myActivitiesPanel").classList.toggle("hidden",admin);
+  $("employeeReopenPanel").classList.toggle("hidden",admin);
   document.querySelectorAll("[data-admin-only]").forEach(button=>button.classList.toggle("hidden",!admin));
   document.querySelectorAll("[data-employee-only]").forEach(button=>button.classList.toggle("hidden",admin));
 
   if(admin){
     $("reportWeek").value=getISOWeekValue(new Date());
     $("myReportWeek").value=getISOWeekValue(new Date());
+    $("reopenWeek").value=getISOWeekValue(new Date());
     await populateAdminFilters();
     await loadEmployees();
     await loadActivities();
@@ -629,6 +634,7 @@ async function loadDashboard(){
     await loadAuditLog();
   }else{
     $("myReportWeek").value=getISOWeekValue(new Date());
+    $("reopenWeek").value=getISOWeekValue(new Date());
     $("myDepartmentName").value=
       departments.find(d=>String(d.id)===String(profile.department_id))?.name||"No asignado";
     $("activityList").replaceChildren();
@@ -982,9 +988,10 @@ async function loadAdminReviews(activities,weekStart){
 }
 
 async function loadEmployeeReviewAndRequests(){
-  const range=getWeekRange($("myReportWeek").value);
+  const range=getWeekRange($("reopenWeek").value);
   $("myReviewStatus").replaceChildren();
-  $("employeeReopenForm").classList.add("hidden");
+  $("requestReopenBtn").disabled=true;
+  $("reopenEligibility").textContent="";
   showReopenMessage("");
 
   if(!range){
@@ -1004,6 +1011,7 @@ async function loadEmployeeReviewAndRequests(){
     addText($("myReviewStatus"),"p","No se pudo consultar el estado de revisión.");
   }else if(!review){
     addText($("myReviewStatus"),"p","Estado del reporte: pendiente de revisión.");
+    $("reopenEligibility").textContent="Esta semana no tiene una revisión aprobada. La solicitud estará disponible cuando el administrador apruebe el reporte.";
   }else{
     const line=document.createElement("p");
     line.appendChild(document.createTextNode("Estado del reporte: "));
@@ -1012,7 +1020,10 @@ async function loadEmployeeReviewAndRequests(){
     if(review.observations)addField($("myReviewStatus"),"Observaciones del administrador",review.observations);
 
     if(review.status===REVIEW_ACCEPTED){
-      $("employeeReopenForm").classList.remove("hidden");
+      $("requestReopenBtn").disabled=false;
+      $("reopenEligibility").textContent="Reporte aprobado: puedes enviar una solicitud. No se desbloqueará hasta que el administrador la apruebe.";
+    }else{
+      $("reopenEligibility").textContent=`Estado actual: ${review.status}. Solo se puede solicitar reapertura de un reporte aprobado.`;
     }
   }
 
@@ -1063,9 +1074,11 @@ $("reopenForm").addEventListener("submit",async event=>{
     return;
   }
 
-  const reason=$("reopenReason").value.trim();
-  const range=getWeekRange($("myReportWeek").value);
-  if(!range||reason.length<5){
+  const reasonType=$("reopenReasonType").value;
+  const detail=$("reopenReason").value.trim();
+  const reason=reasonType ? `${reasonType}: ${detail}` : detail;
+  const range=getWeekRange($("reopenWeek").value);
+  if(!range||!reasonType||detail.length<5){
     showReopenMessage("Selecciona una semana válida e indica un motivo de al menos 5 caracteres.");
     return;
   }
@@ -1417,7 +1430,12 @@ function setActiveView(viewId){
 }
 
 document.querySelectorAll(".nav-button").forEach(button=>{
-  button.addEventListener("click",()=>setActiveView(button.dataset.view));
+  button.addEventListener("click",async()=>{
+    setActiveView(button.dataset.view);
+    if(button.dataset.view==="employeeReopenPanel"&&!isAdmin()&&profile){
+      await loadEmployeeReviewAndRequests();
+    }
+  });
 });
 
 const LOGO_STORAGE_KEY="htc_institution_logo_v1";
@@ -1626,7 +1644,12 @@ $("refreshBtn").addEventListener("click",async()=>{
 
 $("myReportWeek").addEventListener("change",async()=>{
   if(isAdmin()||!profile)return;
+  $("reopenWeek").value=$("myReportWeek").value;
   await loadActivities();
+  await loadEmployeeReviewAndRequests();
+});
+$("reopenWeek").addEventListener("change",async()=>{
+  if(isAdmin()||!profile)return;
   await loadEmployeeReviewAndRequests();
 });
 $("refreshMyActivitiesBtn").addEventListener("click",async()=>{
