@@ -4,202 +4,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
-<title>Human Test Center | Sistema de Actividades</title>
+<title>Human Test Center | Control de Actividades</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 :root {
-  --navy: #12345a;
-  --blue: #1768ac;
-  --bg: #f1f5f9;
-  --border: #dbe3ed;
-  --text: #1e293b;
-  --muted: #64748b;
+  --navy:#12345a;
+  --blue:#1768ac;
+  --bg:#f1f5f9;
+  --border:#dbe3ed;
+  --text:#1e293b;
+  --muted:#64748b;
+  --green:#15803d;
+  --red:#b91c1c;
+  --amber:#92400e;
 }
-* { box-sizing: border-box; }
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.5;
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;margin:0;background:var(--bg);color:var(--text)}
+header{background:var(--navy);color:white;padding:22px;text-align:center}
+header h1{margin:0 0 8px}
+header p{margin:0}
+main{max-width:1150px;margin:25px auto;padding:20px}
+.panel{background:white;padding:22px;margin-bottom:20px;border-radius:12px;box-shadow:0 3px 12px #00000010}
+h2{margin-top:0}
+h3{margin-top:22px}
+label{display:block;font-weight:bold;margin:14px 0 6px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:6px;font:inherit;background:white;color:var(--text)}
+textarea{min-height:85px;resize:vertical}
+button{border:0;border-radius:6px;padding:11px 15px;margin:10px 8px 0 0;cursor:pointer;font-weight:bold}
+button:disabled{opacity:.55;cursor:not-allowed}
+.primary{background:var(--blue);color:white}
+.secondary{background:#e2e8f0;color:var(--text)}
+.danger{background:var(--red);color:white}
+.success{background:var(--green);color:white}
+.hidden,[hidden]{display:none!important}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+.full{grid-column:1/-1}
+.muted{color:var(--muted);font-size:14px}
+.message{white-space:pre-wrap}
+.status-active{color:var(--green);font-weight:bold}
+.status-inactive{color:var(--red);font-weight:bold}
+.activity,.employee-row,.review-card,.request-card,.audit-card{
+  border:1px solid var(--border);border-radius:9px;padding:15px;margin-top:12px;
+  overflow-wrap:anywhere;break-inside:avoid
 }
-header {
-  background: var(--navy);
-  color: white;
-  padding: 24px 18px;
-  text-align: center;
+.review-card{border-left:5px solid var(--blue)}
+.request-card{border-left:5px solid #d97706}
+.audit-card{font-size:14px}
+.pill{display:inline-block;padding:4px 9px;border-radius:20px;background:#e2e8f0;font-size:12px;font-weight:bold}
+.pill.accepted{background:#dcfce7;color:#166534}
+.pill.rejected{background:#fee2e2;color:#991b1b}
+.pill.pending{background:#fef3c7;color:#92400e}
+.actions{display:flex;flex-wrap:wrap;gap:5px}
+.actions button{margin:6px 5px 0 0}
+hr{border:0;border-top:1px solid var(--border);margin:20px 0}
+@media(max-width:650px){
+  main{padding:12px;margin:12px auto}
+  .panel{padding:16px}
+  .grid{grid-template-columns:1fr}
+  .full{grid-column:auto}
+  button{max-width:100%}
 }
-header h1 { margin: 0 0 5px; }
-header p { margin: 0; }
-main { max-width: 1100px; margin: 25px auto; padding: 18px; }
-.panel {
-  background: white;
-  padding: 24px;
-  margin-bottom: 20px;
-  border-radius: 12px;
-  box-shadow: 0 3px 12px #0000000d;
-}
-h2 { margin-top: 0; }
-label { display: block; font-weight: bold; margin: 14px 0 6px; }
-input, select, textarea {
-  width: 100%;
-  padding: 11px;
-  border: 1px solid #cbd5e1;
-  border-radius: 7px;
-  font: inherit;
-  background: white;
-  color: var(--text);
-}
-textarea { min-height: 90px; resize: vertical; }
-button {
-  border: 0;
-  border-radius: 7px;
-  padding: 11px 16px;
-  margin: 12px 8px 0 0;
-  cursor: pointer;
-  font: inherit;
-  font-weight: bold;
-}
-button:disabled { opacity: .6; cursor: wait; }
-.primary { background: var(--blue); color: white; }
-.secondary { background: #e2e8f0; color: var(--text); }
-.logout, .danger { background: #b91c1c; color: white; }
-.hidden, [hidden] { display: none !important; }
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 18px;
-}
-.full { grid-column: 1 / -1; }
-.muted { color: var(--muted); font-size: 14px; }
-.status-active { color: #15803d; font-weight: bold; }
-.status-inactive { color: #b91c1c; font-weight: bold; }
-.activity, .employee-row {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 15px;
-  margin-top: 12px;
-  overflow-wrap: anywhere;
-  break-inside: avoid;
-}
-.activity p { margin: 7px 0; }
-.activity > strong { font-size: 16px; }
-.report-toolbar {
-  padding: 14px;
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  margin: 15px 0;
-}
-.report-print-header { display: none; }
-.report-summary {
-  margin: 15px 0;
-  padding: 12px;
-  border-left: 4px solid var(--blue);
-  background: #f8fafc;
-}
-.notice { padding: 10px 0; }
-button:focus-visible, input:focus-visible,
-select:focus-visible, textarea:focus-visible {
-  outline: 3px solid #93c5fd;
-  outline-offset: 2px;
-}
-
-@media (max-width: 650px) {
-  main { padding: 10px; margin: 12px auto; }
-  .panel { padding: 16px; }
-  .grid { grid-template-columns: 1fr; }
-  .full { grid-column: auto; }
-  button { max-width: 100%; }
-}
-
-@page {
-  size: auto;
-  margin: 15mm;
-}
-
-@media print {
-  body {
-    background: white !important;
-    color: #111827 !important;
-    font-size: 10pt;
-    line-height: 1.4;
-  }
-  header {
-    background: white !important;
-    color: #12345a !important;
-    border-bottom: 2px solid #12345a;
-    padding: 0 0 10px;
-    margin-bottom: 16px;
-    text-align: center;
-  }
-  header h1 { font-size: 19pt; }
-  header p { font-size: 10pt; }
-  main { max-width: none; margin: 0; padding: 0; }
-  .panel {
-    box-shadow: none !important;
-    border: 0 !important;
-    border-radius: 0;
-    padding: 0;
-    margin: 0;
-  }
-  #loginPanel, #userPanel, #activityFormPanel,
-  #adminEmployeesPanel, #mensaje, #formMessage,
-  #employeeMessage, #reportControls, #myReportControls,
-  #refreshBtn, #printBtn, #refreshMyActivitiesBtn,
-  #logoutBtn, #employeeForm, #refreshEmployeesBtn {
-    display: none !important;
-  }
-
-  body.print-admin #appPanel > *:not(#adminReportsPanel) {
-    display: none !important;
-  }
-  body.print-user #appPanel > *:not(#myActivitiesPanel) {
-    display: none !important;
-  }
-  body.print-admin #adminReportsPanel,
-  body.print-user #myActivitiesPanel {
-    display: block !important;
-  }
-  .report-print-header {
-    display: block !important;
-    border-bottom: 1px solid #94a3b8;
-    padding: 0 0 12px;
-    margin-bottom: 14px;
-  }
-  .report-print-header h2 {
-    font-size: 15pt;
-    margin: 0 0 8px;
-    color: #12345a !important;
-  }
-  .report-print-header p { margin: 3px 0; }
-  .report-summary {
-    background: white !important;
-    border: 1px solid #94a3b8;
-    padding: 8px;
-    margin: 12px 0;
-  }
-  .activity {
-    border: 1px solid #9ca3af !important;
-    border-radius: 0;
-    padding: 10px;
-    margin: 9px 0;
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-  .activity p { margin: 4px 0; }
-  .muted { color: #374151 !important; }
-  #activityList, #myActivityList {
-    display: block !important;
-  }
-  button { display: none !important; }
-  a { color: black; text-decoration: none; }
+@media print{
+  @page{margin:14mm}
+  body{background:white;color:black;font-size:11pt}
+  header{background:white!important;color:black!important;padding:0 0 12px}
+  main{max-width:none;margin:0;padding:0}
+  #loginPanel,#userPanel,#activityFormPanel,#reportControls,
+  #refreshBtn,#printBtn,#logoutBtn,#mensaje,#formMessage,
+  #adminEmployeesPanel,#adminRequestsPanel,#adminAuditPanel,
+  #adminReviewPanel,#myActivitiesControls,#employeeReopenForm,
+  #employeeRequestsPanel,.no-print{display:none!important}
+  body[data-print-mode="admin"] #myActivitiesPanel{display:none!important}
+  body[data-print-mode="employee"] #adminReportsPanel{display:none!important}
+  #adminReportsPanel,#myActivitiesPanel{display:block!important}
+  .panel{box-shadow:none;border:0;padding:0;margin:0}
+  .activity{border:1px solid #999}
+  .review-card,.request-card,.audit-card{break-inside:avoid}
 }
 </style>
 </head>
-
 <body>
 <header>
   <h1>Human Test Center</h1>
@@ -212,23 +95,16 @@ select:focus-visible, textarea:focus-visible {
   <form id="loginForm">
     <label for="email">Correo electrónico</label>
     <input id="email" type="email" autocomplete="username" required>
-
     <label for="password">Contraseña</label>
-    <input id="password" type="password"
-           autocomplete="current-password" required>
-
-    <button class="primary" id="loginBtn" type="submit">
-      Iniciar sesión
-    </button>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <button class="primary" id="loginBtn" type="submit">Iniciar sesión</button>
   </form>
 </section>
 
 <section id="appPanel" class="hidden">
   <div id="userPanel" class="panel">
     <div id="usuarioInfo"></div>
-    <button id="logoutBtn" class="logout" type="button">
-      Cerrar sesión
-    </button>
+    <button id="logoutBtn" class="danger" type="button">Cerrar sesión</button>
   </div>
 
   <section id="activityFormPanel" class="panel">
@@ -249,7 +125,7 @@ select:focus-visible, textarea:focus-visible {
         </div>
         <div class="full">
           <label for="title">Título de la actividad</label>
-          <input id="title" maxlength="200" required>
+          <input id="title" type="text" maxlength="200" required>
         </div>
         <div class="full">
           <label for="description">Descripción del trabajo realizado</label>
@@ -275,26 +151,15 @@ select:focus-visible, textarea:focus-visible {
           <textarea id="observations"></textarea>
         </div>
       </div>
-      <button id="saveBtn" class="primary" type="submit">
-        Guardar actividad
-      </button>
+      <button id="saveBtn" class="primary" type="submit">Guardar actividad</button>
     </form>
-    <p id="formMessage" role="status" aria-live="polite"></p>
+    <p id="formMessage" class="message" role="status" aria-live="polite"></p>
   </section>
 
-  <!-- REPORTES GENERALES: ADMINISTRADOR -->
+  <!-- REPORTES DEL ADMINISTRADOR -->
   <section id="adminReportsPanel" class="panel hidden">
-    <div class="report-print-header">
-      <h2>Reporte semanal de actividades</h2>
-      <p><strong>Institución:</strong> Human Test Center</p>
-      <p id="adminPrintPeriod"></p>
-      <p id="adminPrintDepartment"></p>
-      <p id="adminPrintGenerated"></p>
-      <p id="adminPrintResponsible"></p>
-    </div>
-
-    <h2>Reportes semanales por departamento</h2>
-    <p class="muted">Sección exclusiva para administradores.</p>
+    <h2>Reportes semanales</h2>
+    <p class="muted">Consulta actividades y revisa los reportes por empleado.</p>
 
     <div id="reportControls" class="grid">
       <div>
@@ -305,82 +170,102 @@ select:focus-visible, textarea:focus-visible {
         <label for="reportDepartment">Departamento</label>
         <select id="reportDepartment"></select>
       </div>
+      <div class="full">
+        <label for="reportEmployee">Empleado</label>
+        <select id="reportEmployee">
+          <option value="all">Todos los empleados</option>
+        </select>
+      </div>
     </div>
 
-    <div class="report-summary">
-      <p id="weekLabel" class="muted"></p>
-      <p id="reportCount" class="muted">Total de actividades: 0</p>
+    <p id="weekLabel" class="muted"></p>
+    <p id="reportCount" class="muted"></p>
+    <div class="actions no-print">
+      <button id="refreshBtn" class="primary" type="button">Consultar reporte</button>
+      <button id="printBtn" class="secondary" type="button">Imprimir / Guardar PDF</button>
     </div>
-
-    <button id="refreshBtn" class="primary" type="button">
-      Consultar reporte
-    </button>
-    <button id="printBtn" class="secondary" type="button">
-      Imprimir / Guardar en PDF
-    </button>
-
     <div id="activityList" aria-live="polite"></div>
+
+    <hr>
+    <section id="adminReviewPanel">
+      <h3>Revisión de reportes por empleado</h3>
+      <p class="muted">Selecciona una semana y un departamento. Cada revisión corresponde a un empleado y una semana.</p>
+      <div id="reviewList" aria-live="polite"></div>
+    </section>
   </section>
 
-  <!-- REPORTE PERSONAL: EMPLEADO -->
+  <!-- ACTIVIDADES Y REPORTES DEL EMPLEADO -->
   <section id="myActivitiesPanel" class="panel hidden">
-    <div class="report-print-header">
-      <h2>Reporte personal de actividades semanales</h2>
-      <p><strong>Institución:</strong> Human Test Center</p>
-      <p id="myPrintEmployee"></p>
-      <p id="myPrintDepartment"></p>
-      <p id="myPrintPeriod"></p>
-      <p id="myPrintGenerated"></p>
+    <h2>Mis actividades y reporte semanal</h2>
+    <div id="myActivitiesControls" class="grid">
+      <div>
+        <label for="myReportWeek">Semana del reporte</label>
+        <input id="myReportWeek" type="week" required>
+      </div>
+      <div>
+        <label>Mi departamento</label>
+        <input id="myDepartmentName" type="text" readonly>
+      </div>
     </div>
-
-    <h2>Mis actividades registradas</h2>
-    <p class="muted">
-      Consulta únicamente tus actividades de la semana seleccionada.
-    </p>
-
-    <div id="myReportControls" class="report-toolbar">
-      <label for="myReportWeek">Semana del reporte</label>
-      <input id="myReportWeek" type="week" required>
-      <p id="myWeekLabel" class="muted"></p>
+    <p id="myReviewStatus" aria-live="polite"></p>
+    <p id="myActivitiesCount" class="muted"></p>
+    <div class="actions no-print">
+      <button id="refreshMyActivitiesBtn" class="primary" type="button">Actualizar semana</button>
+      <button id="printMyReportBtn" class="secondary" type="button">Imprimir / Guardar PDF</button>
     </div>
-
-    <div class="report-summary">
-      <p id="myActivitiesCount" class="muted">Mis actividades: 0</p>
-    </div>
-
-    <button id="refreshMyActivitiesBtn" class="primary" type="button">
-      Consultar mis actividades
-    </button>
-    <button id="printMyActivitiesBtn" class="secondary" type="button">
-      Imprimir mis actividades / Guardar en PDF
-    </button>
-
     <div id="myActivityList" aria-live="polite"></div>
+
+    <section id="employeeReopenForm" class="hidden no-print">
+      <hr>
+      <h3>Solicitar reapertura del reporte</h3>
+      <p class="muted">Disponible cuando el reporte semanal está aceptado.</p>
+      <form id="reopenForm">
+        <label for="reopenReason">Motivo de la solicitud</label>
+        <textarea id="reopenReason" minlength="5" maxlength="2000" required></textarea>
+        <button id="requestReopenBtn" class="primary" type="submit">Enviar solicitud</button>
+      </form>
+      <p id="reopenMessage" class="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="employeeRequestsPanel" class="no-print">
+      <h3>Mis solicitudes de reapertura</h3>
+      <div id="myReopenRequests" aria-live="polite"></div>
+    </section>
+  </section>
+
+  <!-- SOLICITUDES DEL ADMINISTRADOR -->
+  <section id="adminRequestsPanel" class="panel hidden">
+    <h2>Solicitudes de reapertura</h2>
+    <p class="muted">Resuelve solicitudes pendientes de los empleados.</p>
+    <button id="refreshRequestsBtn" class="primary no-print" type="button">Actualizar solicitudes</button>
+    <div id="adminRequestList" aria-live="polite"></div>
+  </section>
+
+  <!-- AUDITORÍA -->
+  <section id="adminAuditPanel" class="panel hidden">
+    <h2>Bitácora de auditoría</h2>
+    <p class="muted">Últimos registros de cambios en las actividades.</p>
+    <button id="refreshAuditBtn" class="primary no-print" type="button">Actualizar bitácora</button>
+    <div id="auditList" aria-live="polite"></div>
   </section>
 
   <!-- ADMINISTRACIÓN DE EMPLEADOS -->
   <section id="adminEmployeesPanel" class="panel hidden">
     <h2>Administración de empleados</h2>
-    <p class="muted">
-      Crear cuentas, asignar departamentos y administrar accesos.
-    </p>
-
+    <p class="muted">Crear cuentas, asignar departamentos y administrar accesos.</p>
     <form id="employeeForm">
       <div class="grid">
         <div>
           <label for="employeeName">Nombre completo</label>
-          <input id="employeeName" maxlength="150"
-                 autocomplete="name" required>
+          <input id="employeeName" type="text" maxlength="150" autocomplete="name" required>
         </div>
         <div>
           <label for="employeeEmail">Correo electrónico</label>
-          <input id="employeeEmail" type="email"
-                 autocomplete="email" required>
+          <input id="employeeEmail" type="email" autocomplete="email" required>
         </div>
         <div>
           <label for="employeePassword">Contraseña inicial</label>
-          <input id="employeePassword" type="password"
-                 minlength="10" autocomplete="new-password" required>
+          <input id="employeePassword" type="password" minlength="10" autocomplete="new-password" required>
           <p class="muted">Usa al menos 10 caracteres.</p>
         </div>
         <div>
@@ -390,826 +275,1149 @@ select:focus-visible, textarea:focus-visible {
           </select>
         </div>
       </div>
-      <button id="createEmployeeBtn" class="primary" type="submit">
-        Crear empleado
-      </button>
+      <button id="createEmployeeBtn" class="primary" type="submit">Crear empleado</button>
     </form>
-
-    <p id="employeeMessage" role="status" aria-live="polite"></p>
+    <p id="employeeMessage" class="message" role="status" aria-live="polite"></p>
     <h3>Empleados registrados</h3>
-    <button id="refreshEmployeesBtn" class="secondary" type="button">
-      Actualizar lista
-    </button>
+    <button id="refreshEmployeesBtn" class="secondary no-print" type="button">Actualizar lista</button>
     <div id="employeeList" aria-live="polite"></div>
   </section>
 </section>
-
-<p id="mensaje" class="notice" role="status" aria-live="polite"></p>
+<p id="mensaje" class="message" role="status" aria-live="polite"></p>
 </main>
 
 <script>
 "use strict";
 
-const SUPABASE_URL = "https://qzsyejizsjgubitzrdsj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_b_aQlGzfTH_nitP5T5OwZg_zPwBPW-i";
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const $ = id => document.getElementById(id);
+const SUPABASE_URL="https://qzsyejizsjgubitzrdsj.supabase.co";
+const SUPABASE_KEY="sb_publishable_b_aQlGzfTH_nitP5T5OwZg_zPwBPW-i";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
 
-let currentUser = null;
-let profile = null;
-let departments = [];
-let authGeneration = 0;
-let loadingGeneration = 0;
+let currentUser=null;
+let profile=null;
+let departments=[];
+let employeeCache=[];
+let reportActivities=[];
+let reviewCache=[];
 
-function localDate(date = new Date()) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
+const REVIEW_PENDING="Pendiente de revisión";
+const REVIEW_ACCEPTED="Aceptado";
+const REVIEW_REJECTED="Rechazado";
+
+function localDate(date){
+  const y=date.getFullYear();
+  const m=String(date.getMonth()+1).padStart(2,"0");
+  const d=String(date.getDate()).padStart(2,"0");
   return `${y}-${m}-${d}`;
 }
 
-function getISOWeekValue(date = new Date()) {
-  const d = new Date(Date.UTC(
-    date.getFullYear(), date.getMonth(), date.getDate()
-  ));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+function getISOWeekValue(date){
+  const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+  const dayNum=d.getUTCDay()||7;
+  d.setUTCDate(d.getUTCDate()+4-dayNum);
+  const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const week=Math.ceil((((d-yearStart)/86400000)+1)/7);
+  return `${d.getUTCFullYear()}-W${String(week).padStart(2,"0")}`;
 }
 
-function getWeekRange(value) {
-  if (!value || !/^\d{4}-W\d{2}$/.test(value)) return null;
+function getWeekRange(value){
+  if(!value||!/^\d{4}-W\d{2}$/.test(value))return null;
+  const [yearText,weekText]=value.split("-W");
+  const year=Number(yearText),week=Number(weekText);
+  if(week<1||week>53)return null;
 
-  const [yearText, weekText] = value.split("-W");
-  const year = Number(yearText);
-  const week = Number(weekText);
+  const jan4=new Date(Date.UTC(year,0,4));
+  const day=jan4.getUTCDay()||7;
+  const monday=new Date(jan4);
+  monday.setUTCDate(jan4.getUTCDate()-day+1+(week-1)*7);
 
-  if (week < 1 || week > 53) return null;
+  // Evita aceptar números de semana que no pertenecen al año ISO.
+  if(getISOWeekValue(new Date(monday))!==value)return null;
 
-  const jan4 = new Date(Date.UTC(year, 0, 4));
-  const day = jan4.getUTCDay() || 7;
-  const monday = new Date(jan4);
-  monday.setUTCDate(jan4.getUTCDate() - day + 1 + (week - 1) * 7);
-
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-
-  // Rechaza semanas inexistentes del año ISO.
-  if (getISOWeekValue(new Date(
-    Date.UTC(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate())
-  )) !== value) return null;
-
-  const fmt = d =>
-    `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
-
-  return [fmt(monday), fmt(sunday)];
+  const sunday=new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate()+6);
+  const fmt=d=>`${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
+  return [fmt(monday),fmt(sunday)];
 }
 
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;",
-    '"': "&quot;", "'": "&#39;"
+function getMonday(dateString){
+  const d=new Date(`${dateString}T12:00:00Z`);
+  const day=d.getUTCDay()||7;
+  d.setUTCDate(d.getUTCDate()-day+1);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
+}
+
+function escapeHTML(value){
+  return String(value??"").replace(/[&<>"']/g,char=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[char]);
 }
 
-function showMessage(text) {
-  $("mensaje").textContent = text;
-}
-function showFormMessage(text) {
-  $("formMessage").textContent = text;
-}
-function showEmployeeMessage(text) {
-  $("employeeMessage").textContent = text;
+function addText(parent,tag,text,className=""){
+  const node=document.createElement(tag);
+  node.textContent=text??"";
+  if(className)node.className=className;
+  parent.appendChild(node);
+  return node;
 }
 
-function weekDescription(range) {
-  return range ? `Semana: ${range[0]} al ${range[1]}` : "";
+function addField(parent,label,value,muted=false){
+  const p=document.createElement("p");
+  if(muted)p.className="muted";
+  const strong=document.createElement("strong");
+  strong.textContent=label+": ";
+  p.appendChild(strong);
+  p.appendChild(document.createTextNode(value||"Sin información"));
+  parent.appendChild(p);
 }
 
-function departmentName(id) {
-  return departments.find(d => String(d.id) === String(id))?.name
-    || "No registrado";
+function showMessage(text){$("mensaje").textContent=text||""}
+function showFormMessage(text){$("formMessage").textContent=text||""}
+function showEmployeeMessage(text){$("employeeMessage").textContent=text||""}
+function showReopenMessage(text){$("reopenMessage").textContent=text||""}
+
+function isAdmin(){
+  return !!profile&&profile.active===true&&profile.role==="admin";
 }
 
-function resetPrintMode() {
-  document.body.classList.remove("print-admin", "print-user");
+function statusPill(status){
+  const span=document.createElement("span");
+  span.className="pill";
+  if(status===REVIEW_ACCEPTED)span.classList.add("accepted");
+  else if(status===REVIEW_REJECTED)span.classList.add("rejected");
+  else span.classList.add("pending");
+  span.textContent=status||REVIEW_PENDING;
+  return span;
 }
 
-function showLoggedOut() {
-  loadingGeneration++;
-  currentUser = null;
-  profile = null;
-  departments = [];
-  resetPrintMode();
+function resetPrintMode(){
+  delete document.body.dataset.printMode;
+}
+window.addEventListener("afterprint",resetPrintMode);
+
+function showLoggedOut(){
+  currentUser=null;
+  profile=null;
+  departments=[];
+  employeeCache=[];
+  reportActivities=[];
+  reviewCache=[];
 
   $("loginPanel").classList.remove("hidden");
   $("appPanel").classList.add("hidden");
 
   [
-    "adminReportsPanel", "adminEmployeesPanel", "myActivitiesPanel"
-  ].forEach(id => $(id).classList.add("hidden"));
+    "adminReportsPanel","adminEmployeesPanel","myActivitiesPanel",
+    "adminRequestsPanel","adminAuditPanel"
+  ].forEach(id=>$(id).classList.add("hidden"));
 
   [
-    "myActivityList", "activityList", "employeeList"
-  ].forEach(id => $(id).replaceChildren());
+    "myActivityList","activityList","employeeList","reviewList",
+    "adminRequestList","auditList","myReopenRequests"
+  ].forEach(id=>$(id).replaceChildren());
 
-  $("myActivitiesCount").textContent = "";
-  $("reportCount").textContent = "";
-  $("usuarioInfo").textContent = "";
+  $("usuarioInfo").textContent="";
+  $("myActivitiesCount").textContent="";
+  $("reportCount").textContent="";
+  $("weekLabel").textContent="";
+  $("myReviewStatus").replaceChildren();
   showFormMessage("");
   showEmployeeMessage("");
+  showReopenMessage("");
 }
 
-async function validateActiveProfile() {
-  const generation = authGeneration;
-  const { data, error } = await db.auth.getSession();
-
-  if (generation !== authGeneration || error || !data.session) {
-    currentUser = null;
-    profile = null;
+async function validateActiveProfile(){
+  const {data:sessionData,error:sessionError}=await db.auth.getSession();
+  if(sessionError||!sessionData.session){
+    currentUser=null;
+    profile=null;
     showLoggedOut();
     return false;
   }
 
-  const sessionUser = data.session.user;
-
-  const { data: userProfile, error: profileError } = await db
-    .from("profiles")
+  const sessionUser=sessionData.session.user;
+  const {data:userProfile,error:profileError}=await db.from("profiles")
     .select("id,full_name,department_id,role,active")
-    .eq("id", sessionUser.id)
-    .maybeSingle();
+    .eq("id",sessionUser.id).maybeSingle();
 
-  if (generation !== authGeneration) return false;
-
-  if (profileError || !userProfile || userProfile.active !== true) {
+  if(profileError||!userProfile||userProfile.active!==true){
     await db.auth.signOut();
     showLoggedOut();
-    showMessage("Tu cuenta está inactiva o no se pudo validar.");
+    showMessage("Tu cuenta está inactiva o no se pudo validar. Contacta al administrador.");
     return false;
   }
 
-  currentUser = sessionUser;
-  profile = userProfile;
+  currentUser=sessionUser;
+  profile=userProfile;
   return true;
 }
 
-async function loadDashboard() {
-  const generation = authGeneration;
-  const { data: sessionData, error: sessionError } =
-    await db.auth.getSession();
-
-  if (generation !== authGeneration) return;
-
-  if (sessionError || !sessionData.session) {
+async function loadDashboard(){
+  const {data:sessionData,error:sessionError}=await db.auth.getSession();
+  if(sessionError||!sessionData.session){
     showLoggedOut();
     return;
   }
 
-  const sessionUser = sessionData.session.user;
-  const { data: userProfile, error: profileError } = await db
-    .from("profiles")
+  currentUser=sessionData.session.user;
+  const {data:userProfile,error:profileError}=await db.from("profiles")
     .select("id,full_name,department_id,role,active")
-    .eq("id", sessionUser.id)
-    .maybeSingle();
+    .eq("id",currentUser.id).maybeSingle();
 
-  if (generation !== authGeneration) return;
-
-  if (profileError || !userProfile || userProfile.active !== true) {
+  if(profileError||!userProfile||userProfile.active!==true){
     await db.auth.signOut();
     showLoggedOut();
     showMessage("No se pudo validar tu perfil activo. Contacta al administrador.");
     return;
   }
 
-  currentUser = sessionUser;
-  profile = userProfile;
+  profile=userProfile;
 
-  const { data: deptData, error: deptError } = await db
-    .from("departments")
-    .select("id,name,active")
-    .order("id");
+  const {data:deptData,error:deptError}=await db.from("departments")
+    .select("id,name,active").order("id");
 
-  if (generation !== authGeneration) return;
-
-  if (deptError || !deptData) {
+  if(deptError||!deptData){
     showMessage("No se pudieron cargar los departamentos.");
     return;
   }
 
-  departments = deptData.filter(d => d.active !== false);
-
+  departments=deptData.filter(d=>d.active!==false);
   $("loginPanel").classList.add("hidden");
   $("appPanel").classList.remove("hidden");
+  $("usuarioInfo").textContent=
+    `Usuario: ${profile.full_name?.trim()||currentUser.email} (${currentUser.email}) · Rol: ${profile.role}`;
 
-  $("usuarioInfo").textContent =
-    `Usuario: ${profile.full_name?.trim() || currentUser.email} (${currentUser.email}) · Rol: ${profile.role}`;
+  const allowedDepartments=isAdmin()
+    ?departments
+    :departments.filter(d=>String(d.id)===String(profile.department_id));
 
-  const isAdmin = profile.role === "admin";
-  const allowedDepartments = isAdmin
-    ? departments
-    : departments.filter(d => String(d.id) === String(profile.department_id));
-
-  const departmentSelect = $("department");
+  const departmentSelect=$("department");
   departmentSelect.replaceChildren();
 
-  allowedDepartments.forEach(dept => {
-    const option = document.createElement("option");
-    option.value = dept.id;
-    option.textContent = dept.name;
+  allowedDepartments.forEach(dept=>{
+    const option=document.createElement("option");
+    option.value=dept.id;
+    option.textContent=dept.name;
     departmentSelect.appendChild(option);
   });
 
-  if (!allowedDepartments.length) {
-    showMessage("Tu perfil no tiene un departamento asignado.");
+  if(!allowedDepartments.length){
+    showMessage("Tu perfil no tiene un departamento activo asignado. Contacta al administrador.");
     return;
   }
 
-  departmentSelect.disabled = !isAdmin;
-  departmentSelect.value = String(
-    isAdmin ? allowedDepartments[0].id : profile.department_id
-  );
+  departmentSelect.disabled=!isAdmin();
+  departmentSelect.value=String(isAdmin()?allowedDepartments[0].id:profile.department_id);
+  $("activityDate").value=localDate(new Date());
 
-  $("activityDate").value = localDate();
-  $("status").value = "Pendiente";
+  const admin=isAdmin();
+  $("adminReportsPanel").classList.toggle("hidden",!admin);
+  $("adminEmployeesPanel").classList.toggle("hidden",!admin);
+  $("adminRequestsPanel").classList.toggle("hidden",!admin);
+  $("adminAuditPanel").classList.toggle("hidden",!admin);
+  $("myActivitiesPanel").classList.toggle("hidden",admin);
 
-  $("adminReportsPanel").classList.toggle("hidden", !isAdmin);
-  $("adminEmployeesPanel").classList.toggle("hidden", !isAdmin);
-  $("myActivitiesPanel").classList.toggle("hidden", isAdmin);
-
-  if (isAdmin) {
-    $("reportWeek").value = getISOWeekValue();
-    populateDepartmentFilter($("reportDepartment"), true);
-    populateDepartmentFilter($("employeeDepartment"), false);
-    $("myActivityList").replaceChildren();
-    await loadActivities();
-    if (generation !== authGeneration) return;
+  if(admin){
+    $("reportWeek").value=getISOWeekValue(new Date());
+    $("myReportWeek").value=getISOWeekValue(new Date());
+    await populateAdminFilters();
     await loadEmployees();
-  } else {
-    $("myReportWeek").value = getISOWeekValue();
+    await loadActivities();
+    await loadAdminRequests();
+    await loadAuditLog();
+  }else{
+    $("myReportWeek").value=getISOWeekValue(new Date());
+    $("myDepartmentName").value=
+      departments.find(d=>String(d.id)===String(profile.department_id))?.name||"No asignado";
     $("activityList").replaceChildren();
+    $("reportCount").textContent="";
+    $("weekLabel").textContent="";
     $("employeeList").replaceChildren();
     await loadActivities();
+    await loadEmployeeReviewAndRequests();
   }
 
-  if (generation === authGeneration) showMessage("");
+  showMessage("");
 }
 
-function populateDepartmentFilter(select, includeAll) {
-  select.replaceChildren();
+async function populateAdminFilters(){
+  const reportDepartment=$("reportDepartment");
+  reportDepartment.replaceChildren();
 
-  if (includeAll) {
-    const all = document.createElement("option");
-    all.value = "all";
-    all.textContent = "Todos los departamentos";
-    select.appendChild(all);
-  } else {
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "Selecciona un departamento";
-    select.appendChild(placeholder);
-  }
+  const allOption=document.createElement("option");
+  allOption.value="all";
+  allOption.textContent="Todos los departamentos";
+  reportDepartment.appendChild(allOption);
 
-  departments.forEach(dept => {
-    const option = document.createElement("option");
-    option.value = dept.id;
-    option.textContent = dept.name;
-    select.appendChild(option);
+  departments.forEach(dept=>{
+    const option=document.createElement("option");
+    option.value=dept.id;
+    option.textContent=dept.name;
+    reportDepartment.appendChild(option);
   });
-}
 
-function addParagraph(article, label, value, muted = false) {
-  const p = document.createElement("p");
-  if (muted) p.className = "muted";
+  const {data:profilesData,error}=await db.from("profiles")
+    .select("id,full_name,department_id,role,active")
+    .eq("role","employee")
+    .order("full_name");
 
-  const strong = document.createElement("strong");
-  strong.textContent = `${label}: `;
-  p.appendChild(strong);
-  p.appendChild(document.createTextNode(
-    value === null || value === undefined || value === ""
-      ? "Sin información" : String(value)
-  ));
-  article.appendChild(p);
-}
-
-async function loadActivities() {
-  if (!profile || profile.active !== true || !currentUser) return;
-
-  const generation = authGeneration;
-  const requestId = ++loadingGeneration;
-  const isAdmin = profile.role === "admin";
-
-  const listElement = $(isAdmin ? "activityList" : "myActivityList");
-  const countElement = $(isAdmin ? "reportCount" : "myActivitiesCount");
-  const weekValue = $(isAdmin ? "reportWeek" : "myReportWeek").value;
-  const range = getWeekRange(weekValue);
-
-  if (!range) {
-    listElement.replaceChildren();
-    countElement.textContent = "Selecciona una semana válida.";
+  if(error){
+    console.error("No se pudo cargar el filtro de empleados:",error);
+    $("reportEmployee").replaceChildren(new Option("Todos los empleados","all"));
     return;
   }
 
-  const [startDate, endDate] = range;
+  employeeCache=(profilesData||[]).filter(p=>p.active===true);
+  rebuildEmployeeFilter();
+}
 
-  if (isAdmin) {
-    $("weekLabel").textContent = weekDescription(range);
-  } else {
-    $("myWeekLabel").textContent = weekDescription(range);
+function rebuildEmployeeFilter(){
+  const select=$("reportEmployee");
+  const previous=select.value||"all";
+  select.replaceChildren(new Option("Todos los empleados","all"));
+
+  const selectedDepartment=$("reportDepartment").value;
+  employeeCache
+    .filter(e=>selectedDepartment==="all"||String(e.department_id)===String(selectedDepartment))
+    .forEach(e=>{
+      select.appendChild(new Option(
+        `${e.full_name||"Sin nombre"} · ${departments.find(d=>String(d.id)===String(e.department_id))?.name||"Sin departamento"}`,
+        e.id
+      ));
+    });
+
+  select.value=[...select.options].some(o=>o.value===previous)?previous:"all";
+}
+
+async function loadActivities(){
+  if(!profile||profile.active!==true||!currentUser){
+    $("activityList").replaceChildren();
+    $("myActivityList").replaceChildren();
+    return;
   }
 
-  listElement.textContent = "Cargando actividades...";
-  countElement.textContent = "";
+  if(isAdmin())await loadAdminActivities();
+  else await loadOwnActivities();
+}
 
-  let query = db.from("activities").select(`
+async function loadAdminActivities(){
+  const range=getWeekRange($("reportWeek").value);
+  if(!range){
+    showMessage("Selecciona una semana válida.");
+    return;
+  }
+
+  const [startDate,endDate]=range;
+  $("weekLabel").textContent=`Semana: ${startDate} al ${endDate}`;
+  const list=$("activityList");
+  list.replaceChildren();
+  list.textContent="Cargando actividades...";
+  $("reportCount").textContent="";
+
+  let query=db.from("activities").select(`
     id,user_id,department_id,title,activity_date,activity_time,
     description,deadline_met,observations,status
-  `)
-    .gte("activity_date", startDate)
-    .lte("activity_date", endDate);
+  `).gte("activity_date",startDate).lte("activity_date",endDate);
 
-  if (isAdmin) {
-    const selectedDepartment = $("reportDepartment").value;
-    if (selectedDepartment && selectedDepartment !== "all") {
-      query = query.eq("department_id", Number(selectedDepartment));
+  const selectedDepartment=$("reportDepartment").value;
+  if(selectedDepartment!=="all"){
+    query=query.eq("department_id",Number(selectedDepartment));
+  }
+  const {data,error}=await query
+    .order("activity_date",{ascending:false})
+    .order("activity_time",{ascending:false});
+
+  if(error){
+    console.error("Error al consultar actividades:",error);
+    list.textContent="No se pudieron cargar las actividades. Verifica los permisos de Supabase.";
+    return;
+  }
+
+  reportActivities=data||[];
+  const selectedEmployee=$("reportEmployee").value;
+  const visibleActivities=selectedEmployee==="all"
+    ?reportActivities
+    :reportActivities.filter(a=>a.user_id===selectedEmployee);
+
+  $("reportCount").textContent=`Total de actividades: ${visibleActivities.length}`;
+  list.replaceChildren();
+
+  if(!visibleActivities.length){
+    list.textContent="No hay actividades registradas para los filtros seleccionados.";
+  }else{
+    const ids=[...new Set(visibleActivities.map(a=>a.user_id).filter(Boolean))];
+    const names=await getProfileNames(ids);
+    visibleActivities.forEach(a=>list.appendChild(renderActivity(a,names,true)));
+  }
+
+  await loadAdminReviews(reportActivities,startDate);
+}
+
+async function getProfileNames(ids){
+  if(!ids.length)return {};
+  const {data,error}=await db.from("profiles").select("id,full_name").in("id",ids);
+  if(error){
+    console.error("No se pudieron consultar nombres:",error);
+    return {};
+  }
+  return Object.fromEntries((data||[]).map(p=>[p.id,p.full_name]));
+}
+
+function renderActivity(activity,names={},admin=false){
+  const article=document.createElement("article");
+  article.className="activity";
+  addText(article,"strong",activity.title||"Sin título");
+
+  if(admin){
+    addField(article,"Empleado",names[activity.user_id]||
+      employeeCache.find(e=>e.id===activity.user_id)?.full_name||
+      (activity.user_id===currentUser?.id?profile?.full_name:"Nombre no registrado"),true);
+    const dept=departments.find(d=>String(d.id)===String(activity.department_id));
+    addField(article,"Departamento",dept?.name||"No registrado",true);
+  }
+
+  addField(article,"Fecha",activity.activity_date+
+    (activity.activity_time?` · Hora: ${activity.activity_time}`:""),true);
+  addField(article,"Descripción",activity.description);
+  addField(article,"Estado",activity.status);
+  addField(article,"Plazo cumplido",
+    activity.deadline_met===null?"Sin indicar":activity.deadline_met?"Sí":"No");
+  addField(article,"Observaciones",activity.observations||"Ninguna");
+  return article;
+}
+
+async function loadOwnActivities(){
+  const range=getWeekRange($("myReportWeek").value);
+  const list=$("myActivityList");
+  list.replaceChildren();
+
+  if(!range){
+    list.textContent="Selecciona una semana válida.";
+    return;
+  }
+
+  const [startDate,endDate]=range;
+  list.textContent="Cargando tus actividades...";
+  const {data,error}=await db.from("activities").select(`
+    id,user_id,department_id,title,activity_date,activity_time,
+    description,deadline_met,observations,status
+  `).eq("user_id",currentUser.id)
+    .gte("activity_date",startDate)
+    .lte("activity_date",endDate)
+    .order("activity_date",{ascending:false})
+    .order("activity_time",{ascending:false});
+
+  if(error){
+    console.error("Error al consultar actividades propias:",error);
+    list.textContent="No se pudieron cargar tus actividades.";
+    return;
+  }
+
+  list.replaceChildren();
+  $("myActivitiesCount").textContent=`Semana: ${startDate} al ${endDate} · Mis actividades: ${(data||[]).length}`;
+
+  if(!data||!data.length){
+    list.textContent="No tienes actividades registradas en esta semana.";
+    return;
+  }
+
+  data.forEach(a=>list.appendChild(renderActivity(a,{},false)));
+}
+
+async function loadAdminReviews(activities,weekStart){
+  const container=$("reviewList");
+  container.replaceChildren();
+
+  const employeeIds=[...new Set(activities.map(a=>a.user_id).filter(Boolean))];
+  if(!employeeIds.length){
+    container.textContent="No hay empleados con actividades en esta semana para revisar.";
+    return;
+  }
+
+  const {data:reviews,error}=await db.from("report_reviews")
+    .select("id,employee_id,week_start,status,observations,reviewed_by,reviewed_at,updated_at")
+    .eq("week_start",weekStart)
+    .in("employee_id",employeeIds);
+
+  if(error){
+    console.error("Error al cargar revisiones:",error);
+    container.textContent="No se pudieron cargar los estados de revisión.";
+    return;
+  }
+
+  reviewCache=reviews||[];
+  const names=await getProfileNames(employeeIds);
+  const selectedEmployee=$("reportEmployee").value;
+  const selectedDepartment=$("reportDepartment").value;
+  const groups=new Map();
+
+  activities.forEach(a=>{
+    if(selectedEmployee!=="all"&&a.user_id!==selectedEmployee)return;
+    if(selectedDepartment!=="all"&&String(a.department_id)!==String(selectedDepartment))return;
+    if(!groups.has(a.user_id))groups.set(a.user_id,[]);
+    groups.get(a.user_id).push(a);
+  });
+
+  if(!groups.size){
+    container.textContent="No hay reportes de empleados para revisar con los filtros seleccionados.";
+    return;
+  }
+
+  for(const [employeeId,employeeActivities] of groups){
+    const existing=reviewCache.find(r=>r.employee_id===employeeId);
+    const card=document.createElement("article");
+    card.className="review-card";
+    addText(card,"h4",names[employeeId]||
+      employeeCache.find(e=>e.id===employeeId)?.full_name||
+      "Empleado sin nombre");
+
+    addField(card,"Semana",weekStart);
+    addField(card,"Actividades",String(employeeActivities.length));
+    const statusLine=document.createElement("p");
+    statusLine.appendChild(document.createTextNode("Estado actual: "));
+    statusLine.appendChild(statusPill(existing?.status||REVIEW_PENDING));
+    card.appendChild(statusLine);
+
+    if(existing?.observations){
+      addField(card,"Observaciones actuales",existing.observations);
     }
-  } else {
-    // Defensa adicional en el cliente; RLS sigue siendo obligatoria.
-    query = query.eq("user_id", currentUser.id);
-  }
 
-  query = query.order("activity_date", { ascending: false })
-    .order("activity_time", { ascending: false });
+    const statusLabel=document.createElement("label");
+    statusLabel.textContent="Estado de revisión";
+    const statusSelect=document.createElement("select");
+    statusSelect.append(
+      new Option(REVIEW_PENDING,REVIEW_PENDING),
+      new Option(REVIEW_ACCEPTED,REVIEW_ACCEPTED),
+      new Option(REVIEW_REJECTED,REVIEW_REJECTED)
+    );
+    statusSelect.value=existing?.status||REVIEW_PENDING;
+    statusLabel.appendChild(statusSelect);
+    card.appendChild(statusLabel);
 
-  const { data, error } = await query;
+    const obsLabel=document.createElement("label");
+    obsLabel.textContent="Observaciones del administrador";
+    const obs=document.createElement("textarea");
+    obs.maxLength=3000;
+    obs.value=existing?.observations||"";
+    obsLabel.appendChild(obs);
+    card.appendChild(obsLabel);
 
-  if (generation !== authGeneration || requestId !== loadingGeneration) return;
-
-  if (error) {
-    console.error("Error al consultar actividades:", error);
-    listElement.textContent =
-      "No se pudieron cargar las actividades. Verifica los permisos de Supabase.";
-    return;
-  }
-
-  const activities = data || [];
-  countElement.textContent = isAdmin
-    ? `Total de actividades: ${activities.length}`
-    : `Mis actividades: ${activities.length}`;
-
-  listElement.replaceChildren();
-
-  if (!activities.length) {
-    listElement.textContent = isAdmin
-      ? "No hay actividades registradas para esta semana y departamento."
-      : "No tienes actividades registradas durante esta semana.";
-    return;
-  }
-
-  let employeeNames = {};
-
-  if (isAdmin) {
-    const userIds = [...new Set(activities.map(a => a.user_id).filter(Boolean))];
-
-    if (userIds.length) {
-      const { data: names, error: namesError } = await db
-        .from("profiles")
-        .select("id,full_name")
-        .in("id", userIds);
-
-      if (generation !== authGeneration || requestId !== loadingGeneration) return;
-
-      if (!namesError && names) {
-        employeeNames = Object.fromEntries(
-          names.map(p => [p.id, p.full_name])
-        );
+    const save=document.createElement("button");
+    save.className="primary no-print";
+    save.type="button";
+    save.textContent="Guardar revisión";
+    save.addEventListener("click",async()=>{
+      if(!await validateActiveProfile()||!isAdmin()){
+        showMessage("La sesión administrativa ya no es válida.");
+        return;
       }
+      const status=statusSelect.value;
+      if(![REVIEW_PENDING,REVIEW_ACCEPTED,REVIEW_REJECTED].includes(status)){
+        showMessage("Estado de revisión no válido.");
+        return;
+      }
+      if(status===REVIEW_REJECTED&&!obs.value.trim()){
+        showMessage("Escribe las observaciones para explicar el rechazo.");
+        obs.focus();
+        return;
+      }
+
+      save.disabled=true;
+      try{
+        const now=new Date().toISOString();
+        const payload={
+          employee_id:employeeId,
+          week_start:weekStart,
+          status,
+          observations:obs.value.trim()||null,
+          reviewed_by:status===REVIEW_PENDING?null:currentUser.id,
+          reviewed_at:status===REVIEW_PENDING?null:now,
+          updated_at:now
+        };
+
+        const {error:saveError}=await db.from("report_reviews")
+          .upsert(payload,{onConflict:"employee_id,week_start"});
+
+        if(saveError)throw saveError;
+        showMessage("Revisión semanal guardada correctamente.");
+        await loadAdminActivities();
+      }catch(error){
+        console.error("Error al guardar revisión:",error);
+        showMessage("No se pudo guardar la revisión. Verifica las políticas RLS y los permisos de la tabla.");
+      }finally{
+        save.disabled=false;
+      }
+    });
+
+    card.appendChild(save);
+    container.appendChild(card);
+  }
+}
+
+async function loadEmployeeReviewAndRequests(){
+  const range=getWeekRange($("myReportWeek").value);
+  $("myReviewStatus").replaceChildren();
+  $("employeeReopenForm").classList.add("hidden");
+  showReopenMessage("");
+
+  if(!range){
+    addText($("myReviewStatus"),"p","Selecciona una semana válida.");
+    return;
+  }
+
+  const weekStart=range[0];
+  const {data:review,error}=await db.from("report_reviews")
+    .select("status,observations,reviewed_at")
+    .eq("employee_id",currentUser.id)
+    .eq("week_start",weekStart)
+    .maybeSingle();
+
+  if(error){
+    console.error("Error al consultar tu revisión:",error);
+    addText($("myReviewStatus"),"p","No se pudo consultar el estado de revisión.");
+  }else if(!review){
+    addText($("myReviewStatus"),"p","Estado del reporte: pendiente de revisión.");
+  }else{
+    const line=document.createElement("p");
+    line.appendChild(document.createTextNode("Estado del reporte: "));
+    line.appendChild(statusPill(review.status));
+    $("myReviewStatus").appendChild(line);
+    if(review.observations)addField($("myReviewStatus"),"Observaciones del administrador",review.observations);
+
+    if(review.status===REVIEW_ACCEPTED){
+      $("employeeReopenForm").classList.remove("hidden");
     }
   }
 
-  activities.forEach(activity => {
-    const article = document.createElement("article");
-    article.className = "activity";
+  await loadOwnReopenRequests();
+}
 
-    const title = document.createElement("strong");
-    title.textContent = activity.title || "Sin título";
-    article.appendChild(title);
+async function loadOwnReopenRequests(){
+  const container=$("myReopenRequests");
+  container.replaceChildren();
 
-    if (isAdmin) {
-      const employeeName = employeeNames[activity.user_id]?.trim()
-        || (activity.user_id === currentUser.id
-          ? profile.full_name?.trim() || currentUser.email
-          : "Nombre no disponible");
+  const {data,error}=await db.from("report_reopen_requests")
+    .select("id,week_start,reason,status,created_at,reviewed_at,admin_observations")
+    .eq("employee_id",currentUser.id)
+    .order("created_at",{ascending:false})
+    .limit(50);
 
-      addParagraph(article, "Empleado", employeeName, true);
-      addParagraph(article, "Departamento",
-        departmentName(activity.department_id), true);
-    }
+  if(error){
+    console.error("Error al consultar solicitudes propias:",error);
+    container.textContent="No se pudieron cargar tus solicitudes.";
+    return;
+  }
 
-    addParagraph(article, "Fecha",
-      activity.activity_date +
-      (activity.activity_time ? ` · Hora: ${activity.activity_time}` : ""),
-      true);
+  if(!data||!data.length){
+    container.textContent="No has enviado solicitudes de reapertura.";
+    return;
+  }
 
-    addParagraph(article, "Descripción", activity.description);
-    addParagraph(article, "Estado", activity.status);
-
-    const deadline = activity.deadline_met === null
-      ? "Sin indicar" : activity.deadline_met ? "Sí" : "No";
-
-    addParagraph(article, "Plazo cumplido", deadline);
-    addParagraph(article, "Observaciones",
-      activity.observations || "Ninguna");
-
-    listElement.appendChild(article);
+  data.forEach(request=>{
+    const card=document.createElement("article");
+    card.className="request-card";
+    addField(card,"Semana",request.week_start);
+    const line=document.createElement("p");
+    line.appendChild(document.createTextNode("Estado: "));
+    line.appendChild(statusPill(request.status));
+    card.appendChild(line);
+    addField(card,"Motivo",request.reason);
+    if(request.admin_observations)addField(card,"Respuesta del administrador",request.admin_observations);
+    if(request.created_at)addField(card,"Solicitud creada",new Date(request.created_at).toLocaleString("es-MX"));
+    container.appendChild(card);
   });
 }
 
-async function invokeEmployeeAdmin(payload) {
-  if (!profile || profile.role !== "admin" || profile.active !== true) {
-    throw new Error("Solo un administrador activo puede realizar esta operación.");
+$("reopenForm").addEventListener("submit",async event=>{
+  event.preventDefault();
+
+  if(!await validateActiveProfile()||isAdmin()){
+    showReopenMessage("Tu sesión no permite solicitar esta reapertura.");
+    return;
   }
 
-  // Revalidar perfil justo antes de ejecutar la operación privilegiada.
-  if (!await validateActiveProfile() || profile.role !== "admin") {
-    throw new Error("La sesión administrativa ya no es válida.");
+  const reason=$("reopenReason").value.trim();
+  const range=getWeekRange($("myReportWeek").value);
+  if(!range||reason.length<5){
+    showReopenMessage("Selecciona una semana válida e indica un motivo de al menos 5 caracteres.");
+    return;
   }
 
-  const { data, error } = await db.functions.invoke("admin-employees", {
-    body: payload
+  const weekStart=range[0];
+  $("requestReopenBtn").disabled=true;
+  showReopenMessage("Enviando solicitud...");
+
+  try{
+    const {data:review,error:reviewError}=await db.from("report_reviews")
+      .select("status")
+      .eq("employee_id",currentUser.id)
+      .eq("week_start",weekStart)
+      .maybeSingle();
+
+    if(reviewError)throw reviewError;
+    if(review?.status!==REVIEW_ACCEPTED){
+      throw new Error("Solo puedes solicitar la reapertura de un reporte aceptado.");
+    }
+
+    const {data:pending,error:pendingError}=await db.from("report_reopen_requests")
+      .select("id")
+      .eq("employee_id",currentUser.id)
+      .eq("week_start",weekStart)
+      .eq("status","Pendiente")
+      .limit(1);
+
+    if(pendingError)throw pendingError;
+    if(pending?.length){
+      throw new Error("Ya existe una solicitud pendiente para esta semana.");
+    }
+
+    const {error:insertError}=await db.from("report_reopen_requests").insert({
+      employee_id:currentUser.id,
+      week_start:weekStart,
+      reason,
+      status:"Pendiente"
+    });
+
+    if(insertError)throw insertError;
+    $("reopenReason").value="";
+    showReopenMessage("Solicitud enviada correctamente.");
+    await loadOwnReopenRequests();
+  }catch(error){
+    console.error("Error al solicitar reapertura:",error);
+    showReopenMessage(error.message||"No se pudo enviar la solicitud. Verifica los permisos de Supabase.");
+  }finally{
+    $("requestReopenBtn").disabled=false;
+  }
+});
+
+async function loadAdminRequests(){
+  if(!isAdmin())return;
+  const container=$("adminRequestList");
+  container.replaceChildren();
+  container.textContent="Cargando solicitudes...";
+
+  const {data,error}=await db.from("report_reopen_requests")
+    .select("id,employee_id,week_start,reason,status,created_at,reviewed_at,reviewed_by,admin_observations")
+    .order("created_at",{ascending:false})
+    .limit(100);
+
+  if(error){
+    console.error("Error al cargar solicitudes:",error);
+    container.textContent="No se pudieron cargar las solicitudes.";
+    return;
+  }
+
+  container.replaceChildren();
+  if(!data||!data.length){
+    container.textContent="No hay solicitudes registradas.";
+    return;
+  }
+
+  const ids=[...new Set(data.map(r=>r.employee_id).filter(Boolean))];
+  const names=await getProfileNames(ids);
+
+  data.forEach(request=>{
+    const card=document.createElement("article");
+    card.className="request-card";
+    addText(card,"h4",names[request.employee_id]||"Empleado sin nombre");
+    addField(card,"Semana",request.week_start);
+    const statusLine=document.createElement("p");
+    statusLine.appendChild(document.createTextNode("Estado: "));
+    statusLine.appendChild(statusPill(request.status));
+    card.appendChild(statusLine);
+    addField(card,"Motivo",request.reason);
+    if(request.created_at)addField(card,"Fecha de solicitud",new Date(request.created_at).toLocaleString("es-MX"));
+    if(request.admin_observations)addField(card,"Observaciones anteriores",request.admin_observations);
+
+    if(request.status==="Pendiente"){
+      const label=document.createElement("label");
+      label.textContent="Observaciones del administrador";
+      const obs=document.createElement("textarea");
+      obs.maxLength=3000;
+      label.appendChild(obs);
+      card.appendChild(label);
+
+      const actions=document.createElement("div");
+      actions.className="actions no-print";
+
+      const approve=document.createElement("button");
+      approve.type="button";
+      approve.className="success";
+      approve.textContent="Aprobar y reabrir";
+
+      const reject=document.createElement("button");
+      reject.type="button";
+      reject.className="danger";
+      reject.textContent="Rechazar solicitud";
+
+      const resolve=async status=>{
+        if(!await validateActiveProfile()||!isAdmin()){
+          showMessage("La sesión administrativa ya no es válida.");
+          return;
+        }
+
+        const question=status==="Aprobada"
+          ?"¿Aprobar la solicitud y devolver el reporte a Pendiente de revisión?"
+          :"¿Rechazar esta solicitud de reapertura?";
+        if(!window.confirm(question))return;
+
+        approve.disabled=true;
+        reject.disabled=true;
+
+        try{
+          const {error:rpcError}=await db.rpc("resolve_report_reopen_request",{
+            p_request_id:request.id,
+            p_status:status,
+            p_admin_observations:obs.value.trim()||null
+          });
+          if(rpcError)throw rpcError;
+
+          showMessage(status==="Aprobada"
+            ?"Solicitud aprobada. El reporte volvió a Pendiente de revisión."
+            :"Solicitud rechazada correctamente.");
+
+          await loadAdminRequests();
+          await loadActivities();
+        }catch(error){
+          console.error("Error al resolver solicitud:",error);
+          showMessage("No se pudo resolver la solicitud. Verifica la función RPC y las políticas RLS.");
+          approve.disabled=false;
+          reject.disabled=false;
+        }
+      };
+
+      approve.addEventListener("click",()=>resolve("Aprobada"));
+      reject.addEventListener("click",()=>resolve("Rechazada"));
+      actions.append(approve,reject);
+      card.appendChild(actions);
+    }else if(request.reviewed_at){
+      addField(card,"Fecha de resolución",new Date(request.reviewed_at).toLocaleString("es-MX"));
+    }
+
+    container.appendChild(card);
   });
+}
 
-  if (error) {
-    let detail = "";
-    try {
-      if (error.context && typeof error.context.json === "function") {
-        const body = await error.context.json();
-        detail = body.error || body.message || "";
-      }
-    } catch (_) {}
-    throw new Error(detail || error.message ||
-      "No se pudo contactar con la función de administración.");
+async function loadAuditLog(){
+  if(!isAdmin())return;
+  const container=$("auditList");
+  container.replaceChildren();
+  container.textContent="Cargando bitácora...";
+
+  const {data,error}=await db.from("activity_audit_log")
+    .select("id,activity_id,actor_id,activity_owner_id,action,old_data,new_data,changed_at")
+    .order("changed_at",{ascending:false})
+    .limit(100);
+
+  if(error){
+    console.error("Error al consultar bitácora:",error);
+    container.textContent="No se pudo cargar la bitácora. Verifica la política de lectura para administradores.";
+    return;
   }
 
-  if (data?.error) throw new Error(data.error);
+  container.replaceChildren();
+  if(!data||!data.length){
+    container.textContent="No hay registros de auditoría disponibles.";
+    return;
+  }
+
+  const actorIds=[...new Set(data.map(a=>a.actor_id).filter(Boolean))];
+  const ownerIds=[...new Set(data.map(a=>a.activity_owner_id).filter(Boolean))];
+  const names=await getProfileNames([...new Set([...actorIds,...ownerIds])]);
+
+  data.forEach(entry=>{
+    const card=document.createElement("article");
+    card.className="audit-card";
+    addText(card,"strong",`${entry.action} · ${entry.changed_at?new Date(entry.changed_at).toLocaleString("es-MX"):"Fecha no disponible"}`);
+    addField(card,"Actividad",entry.activity_id);
+    addField(card,"Actor",names[entry.actor_id]||entry.actor_id||"No identificado");
+    addField(card,"Propietario de actividad",names[entry.activity_owner_id]||entry.activity_owner_id||"No identificado");
+
+    const details=document.createElement("details");
+    const summary=document.createElement("summary");
+    summary.textContent="Ver datos anteriores y nuevos";
+    details.appendChild(summary);
+
+    const oldTitle=document.createElement("p");
+    oldTitle.textContent="Datos anteriores:";
+    details.appendChild(oldTitle);
+    const oldPre=document.createElement("pre");
+    oldPre.style.whiteSpace="pre-wrap";
+    oldPre.textContent=entry.old_data?JSON.stringify(entry.old_data,null,2):"Sin datos anteriores";
+    details.appendChild(oldPre);
+
+    const newTitle=document.createElement("p");
+    newTitle.textContent="Datos nuevos:";
+    details.appendChild(newTitle);
+    const newPre=document.createElement("pre");
+    newPre.style.whiteSpace="pre-wrap";
+    newPre.textContent=entry.new_data?JSON.stringify(entry.new_data,null,2):"Sin datos nuevos";
+    details.appendChild(newPre);
+    card.appendChild(details);
+    container.appendChild(card);
+  });
+}
+
+async function invokeEmployeeAdmin(payload){
+  if(!isAdmin())throw new Error("Solo un administrador activo puede realizar esta operación.");
+  const {data,error}=await db.functions.invoke("admin-employees",{body:payload});
+  if(error){
+    let detail="";
+    try{
+      if(error.context&&typeof error.context.json==="function"){
+        const body=await error.context.json();
+        detail=body.error||body.message||"";
+      }
+    }catch(_){}
+    throw new Error(detail||error.message||"No se pudo contactar con la función de administración.");
+  }
+  if(data?.error)throw new Error(data.error);
   return data;
 }
 
-async function loadEmployees() {
-  if (!profile || profile.role !== "admin") return;
+async function loadEmployees(){
+  if(!isAdmin())return;
+  $("employeeList").textContent="Cargando empleados...";
+  $("refreshEmployeesBtn").disabled=true;
 
-  $("employeeList").textContent = "Cargando empleados...";
-  $("refreshEmployeesBtn").disabled = true;
-
-  try {
-    const result = await invokeEmployeeAdmin({ action: "list" });
-    const employees = result.employees || [];
-
-    if (!employees.length) {
-      $("employeeList").textContent = "No hay empleados registrados.";
+  try{
+    const result=await invokeEmployeeAdmin({action:"list"});
+    const employees=result.employees||[];
+    if(!employees.length){
+      $("employeeList").textContent="No hay empleados registrados.";
       return;
     }
 
-    $("employeeList").innerHTML = employees.map(employee => {
-      const active = employee.active === true;
-      const canToggle = employee.role === "employee"
-        && employee.id !== currentUser.id;
+    $("employeeList").replaceChildren();
+    employees.forEach(employee=>{
+      const card=document.createElement("article");
+      card.className="employee-row";
+      addText(card,"strong",employee.full_name||"Sin nombre");
+      const dept=departments.find(d=>String(d.id)===String(employee.department_id));
+      addField(card,"Departamento",dept?.name||"No asignado",true);
+      addField(card,"Rol",employee.role||"employee");
+      const p=document.createElement("p");
+      p.appendChild(document.createTextNode("Estado: "));
+      addText(p,"span",employee.active===true?"Activo":"Inactivo",
+        employee.active===true?"status-active":"status-inactive");
+      card.appendChild(p);
 
-      return `<article class="employee-row">
-        <strong>${escapeHTML(employee.full_name || "Sin nombre")}</strong>
-        <p class="muted">Departamento: ${escapeHTML(
-          departmentName(employee.department_id)
-        )}</p>
-        <p>Rol: ${escapeHTML(employee.role || "employee")}</p>
-        <p>Estado: <span class="${
-          active ? "status-active" : "status-inactive"
-        }">${active ? "Activo" : "Inactivo"}</span></p>
-        ${canToggle ? `<button type="button"
-          class="${active ? "danger" : "primary"} employee-toggle"
-          data-id="${escapeHTML(employee.id)}"
-          data-active="${active ? "false" : "true"}">${
-            active ? "Desactivar cuenta" : "Activar cuenta"
-          }</button>` : ""}
-      </article>`;
-    }).join("");
-  } catch (error) {
-    console.error("Error al cargar empleados:", error);
-    $("employeeList").textContent =
-      `No se pudo cargar la lista: ${error.message}`;
-  } finally {
-    $("refreshEmployeesBtn").disabled = false;
+      if(employee.role==="employee"){
+        const button=document.createElement("button");
+        button.type="button";
+        button.className=employee.active===true?"danger":"primary";
+        button.textContent=employee.active===true?"Desactivar cuenta":"Activar cuenta";
+        button.disabled=employee.id===currentUser.id;
+        button.addEventListener("click",async()=>{
+          const active=employee.active!==true;
+          if(!window.confirm(active?"¿Deseas activar esta cuenta?":"¿Desactivar esta cuenta? El empleado perderá el acceso."))return;
+          button.disabled=true;
+          try{
+            const res=await invokeEmployeeAdmin({action:"set-active",employee_id:employee.id,active});
+            showEmployeeMessage(res.message||"Estado actualizado.");
+            await loadEmployees();
+          }catch(error){
+            showEmployeeMessage(`No se pudo actualizar la cuenta: ${error.message}`);
+            button.disabled=false;
+          }
+        });
+        card.appendChild(button);
+      }
+      $("employeeList").appendChild(card);
+    });
+  }catch(error){
+    console.error("Error al cargar empleados:",error);
+    $("employeeList").textContent=`No se pudo cargar la lista: ${error.message}`;
+  }finally{
+    $("refreshEmployeesBtn").disabled=false;
   }
 }
 
-$("employeeForm").addEventListener("submit", async event => {
+$("employeeForm").addEventListener("submit",async event=>{
   event.preventDefault();
-
-  if (!profile || profile.role !== "admin") {
-    showEmployeeMessage("Solo el administrador puede crear empleados.");
+  if(!await validateActiveProfile()||!isAdmin()){
+    showEmployeeMessage("Solo el administrador activo puede crear empleados.");
     return;
   }
 
-  const name = $("employeeName").value.trim();
-  const email = $("employeeEmail").value.trim();
-  const password = $("employeePassword").value;
-  const department_id = Number($("employeeDepartment").value);
+  const name=$("employeeName").value.trim();
+  const email=$("employeeEmail").value.trim();
+  const password=$("employeePassword").value;
+  const department_id=Number($("employeeDepartment").value);
 
-  if (!name || !email || password.length < 10 || !department_id ||
-      !departments.some(d => Number(d.id) === department_id)) {
-    showEmployeeMessage("Completa los campos y verifica la contraseña y departamento.");
+  if(!name||!email||password.length<10||!department_id){
+    showEmployeeMessage("Completa todos los campos. La contraseña debe tener al menos 10 caracteres.");
     return;
   }
 
-  $("createEmployeeBtn").disabled = true;
+  $("createEmployeeBtn").disabled=true;
   showEmployeeMessage("Creando cuenta de empleado...");
 
-  try {
-    const result = await invokeEmployeeAdmin({
-      action: "create", name, email, password, department_id
-    });
-
-    showEmployeeMessage(result.message || "Empleado creado correctamente.");
+  try{
+    const result=await invokeEmployeeAdmin({action:"create",name,email,password,department_id});
+    showEmployeeMessage(result.message||"Empleado creado correctamente.");
     $("employeeForm").reset();
     await loadEmployees();
-  } catch (error) {
-    console.error("Error al crear empleado:", error);
+    await populateAdminFilters();
+  }catch(error){
+    console.error("Error al crear empleado:",error);
     showEmployeeMessage(`No se pudo crear el empleado: ${error.message}`);
-  } finally {
-    $("createEmployeeBtn").disabled = false;
+  }finally{
+    $("createEmployeeBtn").disabled=false;
   }
 });
 
-$("employeeList").addEventListener("click", async event => {
-  const button = event.target.closest(".employee-toggle");
-  if (!button || !profile || profile.role !== "admin") return;
-
-  const employee_id = button.dataset.id;
-  const active = button.dataset.active === "true";
-
-  if (!window.confirm(active
-    ? "¿Deseas activar esta cuenta?"
-    : "¿Deseas desactivar esta cuenta? El empleado perderá el acceso.")) {
-    return;
-  }
-
-  button.disabled = true;
-
-  try {
-    const result = await invokeEmployeeAdmin({
-      action: "set-active", employee_id, active
-    });
-
-    showEmployeeMessage(result.message || "Estado actualizado.");
-    await loadEmployees();
-  } catch (error) {
-    console.error("Error al cambiar estado:", error);
-    showEmployeeMessage(`No se pudo actualizar la cuenta: ${error.message}`);
-    button.disabled = false;
-  }
-});
-
-$("refreshEmployeesBtn").addEventListener("click", () => {
-  if (profile?.role === "admin") loadEmployees();
-});
-
-$("loginForm").addEventListener("submit", async event => {
+$("loginForm").addEventListener("submit",async event=>{
   event.preventDefault();
-  $("loginBtn").disabled = true;
+  $("loginBtn").disabled=true;
   showMessage("Verificando acceso...");
 
-  try {
-    const { error } = await db.auth.signInWithPassword({
-      email: $("email").value.trim(),
-      password: $("password").value
+  try{
+    const {error}=await db.auth.signInWithPassword({
+      email:$("email").value.trim(),
+      password:$("password").value
     });
-
-    if (error) {
+    if(error){
       showMessage("No se pudo iniciar sesión. Comprueba tus credenciales.");
       return;
     }
-
     await loadDashboard();
-  } catch (error) {
+  }catch(error){
     console.error(error);
     showMessage("No se pudo conectar con Supabase.");
-  } finally {
-    $("loginBtn").disabled = false;
+  }finally{
+    $("loginBtn").disabled=false;
   }
 });
 
-$("activityForm").addEventListener("submit", async event => {
+$("activityForm").addEventListener("submit",async event=>{
   event.preventDefault();
 
-  if (!currentUser || !profile) {
-    showFormMessage("Inicia sesión nuevamente.");
+  if(!await validateActiveProfile()){
+    showFormMessage("Tu sesión no está activa. Inicia sesión nuevamente.");
     return;
   }
 
-  const savedUserId = currentUser.id;
-
-  if (!await validateActiveProfile()) {
-    showFormMessage("Tu cuenta no está activa. Inicia sesión nuevamente.");
-    return;
-  }
-
-  if (currentUser.id !== savedUserId) {
-    showFormMessage("La sesión cambió. Verifica tu cuenta e inténtalo de nuevo.");
-    return;
-  }
-
-  const departmentId = Number($("department").value);
-
-  if (profile.role !== "admin" &&
-      departmentId !== Number(profile.department_id)) {
+  const departmentId=Number($("department").value);
+  if(!isAdmin()&&departmentId!==Number(profile.department_id)){
     showFormMessage("No puedes registrar actividades en otro departamento.");
     return;
   }
 
-  if (!departmentId ||
-      !departments.some(d => Number(d.id) === departmentId) ||
-      !$("activityDate").value ||
-      !$("title").value.trim() ||
-      !$("description").value.trim()) {
-    showFormMessage("Completa la fecha, el departamento, el título y la descripción.");
+  if(!$("activityDate").value||!$("title").value.trim()||!$("description").value.trim()){
+    showFormMessage("Completa la fecha, el título y la descripción.");
     return;
   }
 
-  $("saveBtn").disabled = true;
+  $("saveBtn").disabled=true;
   showFormMessage("Guardando actividad...");
 
-  try {
-    const deadlineValue = $("deadline").value;
-
-    const activity = {
-      user_id: currentUser.id,
-      department_id: departmentId,
-      title: $("title").value.trim(),
-      activity_date: $("activityDate").value,
-      activity_time: $("activityTime").value || null,
-      description: $("description").value.trim(),
-      deadline_met: deadlineValue === ""
-        ? null : deadlineValue === "true",
-      observations: $("observations").value.trim(),
-      status: $("status").value,
-      updated_at: new Date().toISOString()
+  try{
+    const deadlineValue=$("deadline").value;
+    const activity={
+      user_id:currentUser.id,
+      department_id:departmentId,
+      title:$("title").value.trim(),
+      activity_date:$("activityDate").value,
+      activity_time:$("activityTime").value||null,
+      description:$("description").value.trim(),
+      deadline_met:deadlineValue===""?null:deadlineValue==="true",
+      observations:$("observations").value.trim(),
+      status:$("status").value,
+      updated_at:new Date().toISOString()
     };
 
-    const { error } = await db.from("activities").insert(activity);
-
-    if (error) {
-      console.error("Error al guardar actividad:", error);
-      showFormMessage(
-        "No se pudo guardar la actividad. Verifica los permisos de Supabase."
-      );
+    const {error}=await db.from("activities").insert(activity);
+    if(error){
+      console.error("Error al guardar actividad:",error);
+      showFormMessage(error.code==="42501"
+        ?"Supabase bloqueó el registro. Si la semana está aceptada, solicita su reapertura."
+        :"No se pudo guardar la actividad. Verifica los permisos de Supabase.");
       return;
     }
 
     showFormMessage("Actividad guardada correctamente.");
     $("activityForm").reset();
-    $("activityDate").value = localDate();
-    $("status").value = "Pendiente";
-
-    if (profile.role !== "admin") {
-      $("department").value = String(profile.department_id);
-    }
-
+    $("activityDate").value=localDate(new Date());
+    $("status").value="Pendiente";
+    if(!isAdmin())$("department").value=String(profile.department_id);
     await loadActivities();
-  } catch (error) {
+  }catch(error){
     console.error(error);
     showFormMessage("Ocurrió un error al guardar la actividad.");
-  } finally {
-    $("saveBtn").disabled = false;
+  }finally{
+    $("saveBtn").disabled=false;
   }
 });
 
-$("refreshBtn").addEventListener("click", () => {
-  if (profile?.role === "admin") loadActivities();
+$("reportDepartment").addEventListener("change",()=>{
+  if(!isAdmin())return;
+  rebuildEmployeeFilter();
+  loadActivities();
+});
+$("reportEmployee").addEventListener("change",()=>{
+  if(isAdmin())loadActivities();
+});
+$("reportWeek").addEventListener("change",()=>{
+  if(isAdmin())loadActivities();
+});
+$("refreshBtn").addEventListener("click",()=>{
+  if(isAdmin())loadActivities();
 });
 
-$("reportWeek").addEventListener("change", () => {
-  if (profile?.role === "admin") loadActivities();
+$("myReportWeek").addEventListener("change",async()=>{
+  if(isAdmin()||!profile)return;
+  await loadActivities();
+  await loadEmployeeReviewAndRequests();
+});
+$("refreshMyActivitiesBtn").addEventListener("click",async()=>{
+  if(isAdmin()||!profile)return;
+  if(!await validateActiveProfile())return;
+  await loadActivities();
+  await loadEmployeeReviewAndRequests();
 });
 
-$("reportDepartment").addEventListener("change", () => {
-  if (profile?.role === "admin") loadActivities();
-});
-
-$("refreshMyActivitiesBtn").addEventListener("click", () => {
-  if (profile?.role === "employee" && profile.active === true) {
-    loadActivities();
-  }
-});
-
-$("myReportWeek").addEventListener("change", () => {
-  if (profile?.role === "employee" && profile.active === true) {
-    loadActivities();
-  }
-});
-
-function prepareAdminPrint() {
-  if (!profile || profile.role !== "admin" || profile.active !== true) {
-    showMessage("Solo un administrador activo puede imprimir reportes generales.");
-    return false;
-  }
-
-  const range = getWeekRange($("reportWeek").value);
-  if (!range) {
-    showMessage("Selecciona una semana válida antes de imprimir.");
-    return false;
-  }
-
-  const selected = $("reportDepartment").value;
-  $("adminPrintPeriod").textContent = weekDescription(range);
-  $("adminPrintDepartment").textContent =
-    "Departamento: " + (selected === "all"
-      ? "Todos los departamentos" : departmentName(selected));
-  $("adminPrintGenerated").textContent =
-    "Fecha de generación: " + new Date().toLocaleString("es-MX");
-  $("adminPrintResponsible").textContent =
-    "Generado por: " + (profile.full_name?.trim() || currentUser.email);
-
-  return true;
-}
-
-function prepareUserPrint() {
-  if (!profile || profile.role !== "employee" || profile.active !== true ||
-      !currentUser) {
-    showMessage("Solo un empleado activo puede imprimir su reporte personal.");
-    return false;
-  }
-
-  const range = getWeekRange($("myReportWeek").value);
-  if (!range) {
-    showMessage("Selecciona una semana válida antes de imprimir.");
-    return false;
-  }
-
-  $("myPrintEmployee").textContent =
-    "Empleado: " + (profile.full_name?.trim() || currentUser.email);
-  $("myPrintDepartment").textContent =
-    "Departamento: " + departmentName(profile.department_id);
-  $("myPrintPeriod").textContent = weekDescription(range);
-  $("myPrintGenerated").textContent =
-    "Fecha de generación: " + new Date().toLocaleString("es-MX");
-
-  return true;
-}
-
-$("printBtn").addEventListener("click", async () => {
-  if (!await validateActiveProfile() || profile.role !== "admin") {
-    showMessage("Sesión administrativa no válida.");
+$("printBtn").addEventListener("click",()=>{
+  if(!isAdmin()){
+    showMessage("Solo el administrador puede imprimir los reportes generales.");
     return;
   }
-
-  await loadActivities();
-
-  if (!prepareAdminPrint()) return;
-
-  resetPrintMode();
-  document.body.classList.add("print-admin");
+  document.body.dataset.printMode="admin";
+  window.print();
+});
+$("printMyReportBtn").addEventListener("click",()=>{
+  if(isAdmin()||!profile)return;
+  document.body.dataset.printMode="employee";
   window.print();
 });
 
-$("printMyActivitiesBtn").addEventListener("click", async () => {
-  if (!await validateActiveProfile() || profile.role !== "employee") {
-    showMessage("Sesión de empleado no válida.");
-    return;
-  }
-
-  await loadActivities();
-
-  if (!prepareUserPrint()) return;
-
-  resetPrintMode();
-  document.body.classList.add("print-user");
-  window.print();
+$("refreshEmployeesBtn").addEventListener("click",()=>{
+  if(isAdmin())loadEmployees();
+});
+$("refreshRequestsBtn").addEventListener("click",()=>{
+  if(isAdmin())loadAdminRequests();
+});
+$("refreshAuditBtn").addEventListener("click",()=>{
+  if(isAdmin())loadAuditLog();
 });
 
-window.addEventListener("afterprint", resetPrintMode);
-
-$("logoutBtn").addEventListener("click", async () => {
-  const { error } = await db.auth.signOut();
-
-  if (error) {
+$("logoutBtn").addEventListener("click",async()=>{
+  const {error}=await db.auth.signOut();
+  if(error){
     showMessage("No se pudo cerrar la sesión.");
     return;
   }
-
-  authGeneration++;
   showLoggedOut();
   showMessage("Sesión cerrada.");
 });
 
-db.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_OUT" || !session) {
-    authGeneration++;
-    showLoggedOut();
-  }
+db.auth.onAuthStateChange((event,session)=>{
+  if(event==="SIGNED_OUT"||!session)showLoggedOut();
 });
 
-loadDashboard().catch(error => {
-  console.error(error);
+loadDashboard().catch(error=>{
+  console.error("Error al iniciar la aplicación:",error);
   showMessage("Ocurrió un error al iniciar la aplicación.");
 });
 </script>
