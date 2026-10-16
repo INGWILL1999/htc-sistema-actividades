@@ -598,18 +598,19 @@ async function loadActivities(){
   if(!profile||profile.active!==true||!currentUser){
     $("activityList").replaceChildren();
     $("myActivityList").replaceChildren();
-    return;
+    return {ok:false,reason:"sesion"};
   }
 
-  if(isAdmin())await loadAdminActivities();
-  else await loadOwnActivities();
+  if(isAdmin())return await loadAdminActivities();
+  await loadOwnActivities();
+  return {ok:true,scope:"own"};
 }
 
 async function loadAdminActivities(){
   const range=getWeekRange($("reportWeek").value);
   if(!range){
-    showMessage("Selecciona una semana válida.");
-    return;
+    showReportMessage("Selecciona una semana válida antes de consultar.");
+    return {ok:false,reason:"semana_invalida"};
   }
 
   const [startDate,endDate]=range;
@@ -636,17 +637,19 @@ async function loadAdminActivities(){
       .order("activity_time",{ascending:false});
   }catch(queryException){
     console.error("Excepción al consultar actividades:",queryException);
-    list.textContent="La consulta no pudo completarse. Revisa la sesión y vuelve a intentarlo.";
-    showMessage(`Error de consulta: ${queryException?.message||"error no identificado"}`);
-    return;
+    list.textContent="La consulta no pudo completarse.";
+    const detail=queryException?.message||"error no identificado";
+    showReportMessage(`Error al consultar actividades: ${detail}`);
+    return {ok:false,reason:"excepcion",message:detail};
   }
   const {data,error}=result;
 
   if(error){
     console.error("Error al consultar actividades:",error);
     list.textContent="No se pudieron cargar las actividades.";
-    showReportMessage(`Error de Supabase al consultar actividades: ${error.message||error.code||"error no identificado"}`);
-    return;
+    const detail=`${error.message||"error no identificado"}${error.code?` (código ${error.code})`:""}`;
+    showReportMessage(`Error de Supabase al consultar actividades: ${detail}`);
+    return {ok:false,reason:"supabase",message:detail};
   }
 
   reportActivities=data||[];
@@ -667,6 +670,16 @@ async function loadAdminActivities(){
   }
 
   await loadAdminReviews(reportActivities,startDate);
+
+  return {
+    ok:true,
+    rawCount:reportActivities.length,
+    visibleCount:visibleActivities.length,
+    startDate,
+    endDate,
+    department:selectedDepartment,
+    employee:selectedEmployee
+  };
 }
 
 async function getProfileNames(ids){
@@ -1393,8 +1406,37 @@ $("refreshBtn").addEventListener("click",async()=>{
       return;
     }
     showReportMessage("Sesión validada. Consultando actividades...");
-    await loadActivities();
-    showReportMessage("Consulta finalizada. Revisa la lista de actividades y el total mostrado.");
+    const outcome=await loadActivities();
+
+    // No reemplazar un error real de Supabase con un mensaje de éxito.
+    if(!outcome||outcome.ok!==true){
+      if(!document.getElementById("reportMessage").textContent.trim()){
+        showReportMessage("La consulta no terminó correctamente. Revisa la semana seleccionada y la consola del navegador.");
+      }
+      return;
+    }
+
+    if(outcome.scope==="own"){
+      showReportMessage("La consulta de actividades propias terminó.");
+      return;
+    }
+
+    const deptLabel=$("reportDepartment").selectedOptions[0]?.textContent||"No especificado";
+    const employeeLabel=$("reportEmployee").selectedOptions[0]?.textContent||"Todos los empleados";
+    if(outcome.visibleCount===0){
+      showReportMessage(
+        `Consulta ejecutada sin resultados. Periodo: ${outcome.startDate} al ${outcome.endDate}. `+
+        `Departamento: ${deptLabel}. Empleado: ${employeeLabel}. `+
+        `Filas devueltas por Supabase: ${outcome.rawCount}. `+
+        `Comprueba que la fecha de la actividad esté dentro de ese periodo y que los filtros sean correctos.`
+      );
+    }else{
+      showReportMessage(
+        `Consulta correcta. Periodo: ${outcome.startDate} al ${outcome.endDate}. `+
+        `Actividades mostradas: ${outcome.visibleCount}. Filas recibidas: ${outcome.rawCount}. `+
+        `Departamento: ${deptLabel}.`
+      );
+    }
   }catch(error){
     console.error("[Reporte] Error al consultar:",error);
     showReportMessage(`No se pudo consultar el reporte: ${error?.message||"error no identificado"}`);
