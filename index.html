@@ -63,22 +63,34 @@ hr{border:0;border-top:1px solid var(--border);margin:20px 0}
   .full{grid-column:auto}
   button{max-width:100%}
 }
+.print-report-heading{display:none}
 @media print{
-  @page{margin:14mm}
-  body{background:white;color:black;font-size:11pt}
-  header{background:white!important;color:black!important;padding:0 0 12px}
-  main{max-width:none;margin:0;padding:0}
+  @page{size:auto;margin:14mm}
+  body{background:white!important;color:#111!important;font-size:10.5pt;line-height:1.35}
+  header{background:white!important;color:#111!important;padding:0 0 10px;border-bottom:2px solid #12345a;margin-bottom:14px}
+  header h1{font-size:19pt;margin:0 0 4px}
+  header p{font-size:10pt;margin:0}
+  main{max-width:none;width:100%;margin:0;padding:0}
   #loginPanel,#userPanel,#activityFormPanel,#reportControls,
-  #refreshBtn,#printBtn,#logoutBtn,#mensaje,#formMessage,
+  #refreshBtn,#printBtn,#logoutBtn,#mensaje,#formMessage,#reportMessage,
   #adminEmployeesPanel,#adminRequestsPanel,#adminAuditPanel,
-  #adminReviewPanel,#myActivitiesControls,#employeeReopenForm,
+  #adminReviewPanel,#myActivitiesControls,#myReviewStatus,#employeeReopenForm,
   #employeeRequestsPanel,.no-print{display:none!important}
   body[data-print-mode="admin"] #myActivitiesPanel{display:none!important}
   body[data-print-mode="employee"] #adminReportsPanel{display:none!important}
-  #adminReportsPanel,#myActivitiesPanel{display:block!important}
-  .panel{box-shadow:none;border:0;padding:0;margin:0}
-  .activity{border:1px solid #999}
+  #adminReportsPanel,#myActivitiesPanel{display:block!important;visibility:visible!important}
+  .panel{box-shadow:none!important;border:0!important;padding:0!important;margin:0!important;border-radius:0!important}
+  .print-report-heading{display:block!important;margin:0 0 14px;padding:0 0 10px;border-bottom:1px solid #777}
+  .print-report-heading h2{font-size:16pt;margin:0 0 8px}
+  .print-report-heading p{margin:3px 0}
+  #weekLabel,#reportCount,#myActivitiesCount{color:#111!important;font-size:10pt;margin:6px 0}
+  .activity{border:1px solid #999!important;border-radius:4px;padding:10px;margin:8px 0;break-inside:avoid;page-break-inside:avoid}
+  .activity strong{font-size:11pt}
+  .activity p{margin:4px 0}
+  #activityList,#myActivityList{display:block!important}
   .review-card,.request-card,.audit-card{break-inside:avoid}
+  button,select,input,textarea{box-shadow:none!important}
+  a{color:#111;text-decoration:none}
 }
 </style>
 </head>
@@ -157,6 +169,13 @@ hr{border:0;border-top:1px solid var(--border);margin:20px 0}
 
   <!-- REPORTES DEL ADMINISTRADOR -->
   <section id="adminReportsPanel" class="panel hidden">
+    <div id="adminPrintHeading" class="print-report-heading">
+      <h2>Reporte semanal de actividades</h2>
+      <p id="adminPrintPeriod"></p>
+      <p id="adminPrintDepartment"></p>
+      <p id="adminPrintEmployee"></p>
+      <p id="adminPrintGenerated"></p>
+    </div>
     <h2>Reportes semanales</h2>
     <p class="muted">Consulta actividades y revisa los reportes por empleado.</p>
 
@@ -196,6 +215,13 @@ hr{border:0;border-top:1px solid var(--border);margin:20px 0}
 
   <!-- ACTIVIDADES Y REPORTES DEL EMPLEADO -->
   <section id="myActivitiesPanel" class="panel hidden">
+    <div id="employeePrintHeading" class="print-report-heading">
+      <h2>Reporte semanal de actividades</h2>
+      <p id="employeePrintName"></p>
+      <p id="employeePrintDepartment"></p>
+      <p id="employeePrintPeriod"></p>
+      <p id="employeePrintGenerated"></p>
+    </div>
     <h2>Mis actividades y reporte semanal</h2>
     <div id="myActivitiesControls" class="grid">
       <div>
@@ -1468,16 +1494,55 @@ $("refreshMyActivitiesBtn").addEventListener("click",async()=>{
   await loadEmployeeReviewAndRequests();
 });
 
-$("printBtn").addEventListener("click",()=>{
-  if(!isAdmin()){
-    showMessage("Solo el administrador puede imprimir los reportes generales.");
+function formatPrintDate(date=new Date()){
+  return date.toLocaleString("es-MX",{dateStyle:"medium",timeStyle:"short"});
+}
+
+function prepareAdminPrintHeading(){
+  const range=getWeekRange($("reportWeek").value);
+  const period=range?`${range[0]} al ${range[1]}`:"Semana no válida";
+  const dept=$("reportDepartment").selectedOptions[0]?.textContent||"Todos los departamentos";
+  const employee=$("reportEmployee").selectedOptions[0]?.textContent||"Todos los empleados";
+  $("adminPrintPeriod").textContent=`Periodo: ${period}`;
+  $("adminPrintDepartment").textContent=`Departamento: ${dept}`;
+  $("adminPrintEmployee").textContent=`Empleado: ${employee}`;
+  $("adminPrintGenerated").textContent=`Generado: ${formatPrintDate()} · ${$("reportCount").textContent||"Total de actividades: 0"}`;
+}
+
+function prepareEmployeePrintHeading(){
+  const range=getWeekRange($("myReportWeek").value);
+  const period=range?`${range[0]} al ${range[1]}`:"Semana no válida";
+  $("employeePrintName").textContent=`Empleado: ${profile?.full_name||currentUser?.email||"Usuario"}`;
+  $("employeePrintDepartment").textContent=`Departamento: ${$("myDepartmentName").value||"No especificado"}`;
+  $("employeePrintPeriod").textContent=`Periodo: ${period}`;
+  $("employeePrintGenerated").textContent=`Generado: ${formatPrintDate()} · ${$("myActivitiesCount").textContent||"Mis actividades: 0"}`;
+}
+
+$("printBtn").addEventListener("click",async()=>{
+  if(!await validateActiveProfile()||!isAdmin()){
+    showMessage("Solo un administrador activo puede imprimir los reportes generales.");
     return;
   }
+  if(!reportActivities.length){
+    showReportMessage("No hay actividades cargadas para imprimir. Consulta primero el reporte semanal.");
+    return;
+  }
+  prepareAdminPrintHeading();
   document.body.dataset.printMode="admin";
   window.print();
 });
-$("printMyReportBtn").addEventListener("click",()=>{
+$("printMyReportBtn").addEventListener("click",async()=>{
   if(isAdmin()||!profile)return;
+  if(!await validateActiveProfile()){
+    showMessage("Tu sesión no está activa. Inicia sesión nuevamente.");
+    return;
+  }
+  const range=getWeekRange($("myReportWeek").value);
+  if(!range){
+    showMessage("Selecciona una semana válida antes de imprimir.");
+    return;
+  }
+  prepareEmployeePrintHeading();
   document.body.dataset.printMode="employee";
   window.print();
 });
