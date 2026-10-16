@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -624,9 +623,18 @@ async function loadAdminActivities(){
   if(selectedDepartment!=="all"){
     query=query.eq("department_id",Number(selectedDepartment));
   }
-  const {data,error}=await query
-    .order("activity_date",{ascending:false})
-    .order("activity_time",{ascending:false});
+  let result;
+  try{
+    result=await query
+      .order("activity_date",{ascending:false})
+      .order("activity_time",{ascending:false});
+  }catch(queryException){
+    console.error("Excepción al consultar actividades:",queryException);
+    list.textContent="La consulta no pudo completarse. Revisa la sesión y vuelve a intentarlo.";
+    showMessage(`Error de consulta: ${queryException?.message||"error no identificado"}`);
+    return;
+  }
+  const {data,error}=result;
 
   if(error){
     console.error("Error al consultar actividades:",error);
@@ -1362,8 +1370,29 @@ $("reportEmployee").addEventListener("change",()=>{
 $("reportWeek").addEventListener("change",()=>{
   if(isAdmin())loadActivities();
 });
-$("refreshBtn").addEventListener("click",()=>{
-  if(isAdmin())loadActivities();
+$("refreshBtn").addEventListener("click",async()=>{
+  const button=$("refreshBtn");
+  button.disabled=true;
+  showMessage("Verificando sesión y consultando el reporte...");
+  try{
+    const valid=await validateActiveProfile();
+    if(!valid){
+      showMessage("La sesión no está activa. Inicia sesión nuevamente.");
+      return;
+    }
+    if(!isAdmin()){
+      showMessage(`El panel no reconoce un perfil administrador activo. Rol recibido: ${profile?.role||"sin rol"}; estado activo: ${String(profile?.active)}. Cierra sesión e inicia sesión nuevamente. No se modificó ningún dato.`);
+      return;
+    }
+    await loadActivities();
+    showMessage("Consulta del reporte ejecutada. Revisa la sección de reportes para ver el resultado.");
+  }catch(error){
+    console.error("Error al actualizar el reporte:",error);
+    showMessage(`No se pudo ejecutar la consulta del reporte: ${error?.message||"error no identificado"}`);
+    $("activityList").textContent="No se pudo ejecutar la consulta. Revisa la sesión y vuelve a intentarlo.";
+  }finally{
+    button.disabled=false;
+  }
 });
 
 $("myReportWeek").addEventListener("change",async()=>{
