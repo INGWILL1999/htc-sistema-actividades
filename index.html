@@ -383,6 +383,8 @@ let profile=null;
 let departments=[];
 let employeeCache=[];
 let reportActivities=[];
+let visibleReportActivities=[];
+let ownReportActivities=[];
 let reviewCache=[];
 
 const REVIEW_PENDING="Pendiente de revisión";
@@ -500,6 +502,8 @@ function showLoggedOut(){
   departments=[];
   employeeCache=[];
   reportActivities=[];
+  visibleReportActivities=[];
+  ownReportActivities=[];
   reviewCache=[];
 
   $("loginPanel").classList.remove("hidden");
@@ -761,6 +765,7 @@ async function loadAdminActivities(){
   const visibleActivities=selectedEmployee==="all"
     ?reportActivities
     :reportActivities.filter(a=>a.user_id===selectedEmployee);
+  visibleReportActivities=visibleActivities;
 
   $("reportCount").textContent=`Total de actividades: ${visibleActivities.length}`;
   list.replaceChildren();
@@ -830,6 +835,7 @@ async function loadOwnActivities(){
   }
 
   const [startDate,endDate]=range;
+  ownReportActivities=[];
   list.textContent="Cargando tus actividades...";
   const {data,error}=await db.from("activities").select(`
     id,user_id,department_id,title,activity_date,activity_time,
@@ -847,7 +853,8 @@ async function loadOwnActivities(){
   }
 
   list.replaceChildren();
-  $("myActivitiesCount").textContent=`Semana: ${startDate} al ${endDate} · Mis actividades: ${(data||[]).length}`;
+  ownReportActivities=data||[];
+  $("myActivitiesCount").textContent=`Semana: ${startDate} al ${endDate} · Mis actividades: ${ownReportActivities.length}`;
 
   if(!data||!data.length){
     list.textContent="No tienes actividades registradas en esta semana.";
@@ -1409,11 +1416,11 @@ $("employeeForm").addEventListener("submit",async event=>{
 
 function setActiveView(viewId){
   const admin=isAdmin();
-  const employeeOnly=viewId==="myActivitiesPanel";
+  const employeeOnly=["myActivitiesPanel","employeeReopenPanel"].includes(viewId);
   const adminViews=["adminReportsPanel","adminReviewPanel","adminRequestsPanel","adminAuditPanel","adminEmployeesPanel"];
   if(adminViews.includes(viewId)&&!admin)return;
   if(employeeOnly&&admin)return;
-  const allowed=["activityFormPanel","adminReportsPanel","myActivitiesPanel","adminReviewPanel","adminRequestsPanel","adminAuditPanel","adminEmployeesPanel"];
+  const allowed=["activityFormPanel","adminReportsPanel","myActivitiesPanel","employeeReopenPanel","adminReviewPanel","adminRequestsPanel","adminAuditPanel","adminEmployeesPanel"];
   if(!allowed.includes(viewId))return;
   allowed.forEach(id=>{
     const panel=$(id);
@@ -1688,8 +1695,13 @@ $("printBtn").addEventListener("click",async()=>{
     showMessage("Solo un administrador activo puede imprimir los reportes generales.");
     return;
   }
-  if(!reportActivities.length){
-    showReportMessage("No hay actividades cargadas para imprimir. Consulta primero el reporte semanal.");
+  const outcome=await loadAdminActivities();
+  if(!outcome?.ok){
+    showReportMessage("No se pudo actualizar el reporte. Corrige los filtros o revisa los permisos antes de imprimir.");
+    return;
+  }
+  if(!visibleReportActivities.length){
+    showReportMessage("No hay actividades para los filtros seleccionados. No se generó la impresión.");
     return;
   }
   prepareAdminPrintHeading();
@@ -1705,6 +1717,11 @@ $("printMyReportBtn").addEventListener("click",async()=>{
   const range=getWeekRange($("myReportWeek").value);
   if(!range){
     showMessage("Selecciona una semana válida antes de imprimir.");
+    return;
+  }
+  await loadOwnActivities();
+  if(!ownReportActivities.length){
+    showMessage("No hay actividades registradas en esa semana. No se generó la impresión.");
     return;
   }
   prepareEmployeePrintHeading();
