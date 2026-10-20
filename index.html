@@ -116,6 +116,195 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
   a{color:#111;text-decoration:none}
 }
 .notice-card{border:1px solid var(--border,#dbe3ee);background:var(--surface-soft,#f5f8fc);border-radius:14px;padding:16px;margin:12px 0 20px}.notice-card p{margin:6px 0 0;color:var(--muted,#5b6778);line-height:1.55}
+/* ==========================================
+   HUMAN TEST CENTER
+   MEJORA VISUAL DE FOTOS DE PERFIL
+   ========================================== */
+
+/* Encabezado del usuario */
+#userPanel {
+  padding: 28px;
+}
+
+#userPanel .app-top {
+  gap: 24px;
+  align-items: center;
+  min-height: 132px;
+}
+
+/* Foto de perfil más grande */
+#userPanel .user-card {
+  flex: 1;
+  gap: 24px;
+  align-items: center;
+}
+
+#userPanel .avatar {
+  width: 112px;
+  height: 112px;
+  min-width: 112px;
+  flex: 0 0 112px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #ffffff;
+  outline: 2px solid #cfe2f8;
+  background: linear-gradient(135deg, #e2efff, #f5f9ff);
+  color: #0f5ca8;
+  font-size: 30px;
+  box-shadow: 0 5px 18px rgba(16, 42, 67, 0.15);
+}
+
+#userPanel .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Datos de usuario y rol */
+#usuarioInfo {
+  font-size: 19px;
+  line-height: 1.6;
+  font-weight: 800;
+  color: #102a43;
+  margin-bottom: 10px;
+}
+
+#usuarioInfo small {
+  font-size: 15px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+/* Controles de fotografía */
+#userPanel .profile-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+#userPanel .profile-tools label {
+  font-size: 15px !important;
+  font-weight: 800;
+  color: #163f66 !important;
+  margin: 0 !important;
+}
+
+#userPanel .profile-tools input[type="file"] {
+  width: auto;
+  max-width: min(100%, 360px);
+  min-height: 46px;
+  padding: 8px 10px;
+  border: 1px solid #cbdcf0;
+  border-radius: 10px;
+  background: #f8fbff;
+  font-size: 14px;
+}
+
+#userPanel .profile-tools button {
+  min-height: 44px;
+  padding: 11px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+/* Mensaje de estado */
+#profilePhotoMessage {
+  min-height: 20px;
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Botón de cerrar sesión */
+#logoutBtn {
+  flex-shrink: 0;
+  min-height: 48px;
+  padding: 13px 22px;
+  border-radius: 11px;
+  font-size: 15px;
+}
+
+/* Adaptación para tabletas */
+@media (max-width: 800px) {
+  #userPanel {
+    padding: 22px;
+  }
+
+  #userPanel .user-card {
+    gap: 18px;
+  }
+
+  #userPanel .avatar {
+    width: 92px;
+    height: 92px;
+    min-width: 92px;
+    flex-basis: 92px;
+  }
+
+  #usuarioInfo {
+    font-size: 17px;
+  }
+}
+
+/* Adaptación para celulares */
+@media (max-width: 520px) {
+  #userPanel {
+    padding: 18px;
+  }
+
+  #userPanel .app-top {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  #userPanel .user-card {
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  #userPanel .avatar {
+    width: 76px;
+    height: 76px;
+    min-width: 76px;
+    flex-basis: 76px;
+    font-size: 24px;
+  }
+
+  #usuarioInfo {
+    font-size: 15px;
+    overflow-wrap: anywhere;
+  }
+
+  #usuarioInfo small {
+    font-size: 13px;
+  }
+
+  #userPanel .profile-tools {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  #userPanel .profile-tools input[type="file"] {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #logoutBtn {
+    width: 100%;
+  }
+}
+
+/* Mantener el encabezado compacto al imprimir */
+@media print {
+  #userPanel {
+    display: none !important;
+  }
+}
 </style>
 </head>
 <body>
