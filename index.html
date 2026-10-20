@@ -57,7 +57,7 @@ button.success{background:var(--green);color:#fff}
 .logo-tools input{margin-top:10px;font-size:13px;padding:8px}
 .app-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
 .user-card{display:flex;align-items:center;gap:13px;min-width:0}
-.avatar{width:44px;height:44px;border-radius:14px;background:#e2f0ff;color:var(--blue-2);display:grid;place-items:center;font-weight:900;font-size:17px;flex:0 0 44px}
+.avatar{width:54px;height:54px;border-radius:50%;background:#e2f0ff;color:var(--blue-2);display:grid;place-items:center;font-weight:900;font-size:17px;flex:0 0 54px;overflow:hidden;border:2px solid #ffffff80}.avatar img{width:100%;height:100%;object-fit:cover;display:block}.profile-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}.profile-tools input[type=file]{max-width:240px;padding:7px;background:#fff;color:var(--text);font-size:12px}.profile-tools button{padding:8px 11px;font-size:12px}.employee-profile-line{display:flex;align-items:center;gap:12px;margin-bottom:8px}.employee-profile-line .avatar{width:46px;height:46px;flex-basis:46px}.photo-status{font-size:12px;color:var(--muted);margin:6px 0 0}
 #usuarioInfo{font-weight:700;overflow-wrap:anywhere}
 #usuarioInfo small{display:block;color:var(--muted);font-weight:500;font-size:13px}
 .app-shell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:start}
@@ -152,7 +152,7 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
 <section id="appPanel" class="hidden">
   <div id="userPanel" class="panel">
     <div class="app-top">
-      <div class="user-card"><div id="userAvatar" class="avatar">U</div><div id="usuarioInfo"></div></div>
+      <div class="user-card"><div id="userAvatar" class="avatar" aria-label="Foto de perfil">U</div><div><div id="usuarioInfo"></div><div class="profile-tools no-print"><label for="myProfilePhoto" style="margin:0;font-size:12px;color:var(--muted)">Mi foto</label><input id="myProfilePhoto" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Seleccionar foto de perfil"><button id="removeMyProfilePhoto" class="secondary" type="button">Quitar foto</button></div><p id="profilePhotoMessage" class="photo-status" role="status" aria-live="polite"></p></div></div>
       <button id="logoutBtn" class="danger" type="button">Cerrar sesión</button>
     </div>
   </div>
@@ -481,6 +481,79 @@ function isAdmin(){
   return !!profile&&profile.active===true&&profile.role==="admin";
 }
 
+// Las fotos se guardan en Supabase Storage, en una ruta por usuario:
+// <user_id>/avatar. No se agrega ninguna columna a profiles.
+const PROFILE_PHOTO_BUCKET="profile-photos";
+const PROFILE_PHOTO_MAX_BYTES=3*1024*1024;
+const PROFILE_PHOTO_TYPES=["image/jpeg","image/png","image/webp"];
+
+function initialsFor(name){
+  const parts=String(name||"Usuario").trim().split(/\s+/).filter(Boolean);
+  return (parts.length>1?parts[0][0]+parts[parts.length-1][0]:parts[0]?.slice(0,2)||"U").toUpperCase();
+}
+
+async function getProfilePhotoUrl(userId){
+  const {data,error}=await db.storage.from(PROFILE_PHOTO_BUCKET)
+    .createSignedUrl(`${userId}/avatar`,3600);
+  if(error){
+    if(!/not found|object not found|does not exist/i.test(error.message||""))
+      console.warn("No se pudo cargar la foto de perfil:",error.message);
+    return null;
+  }
+  return data?.signedUrl||null;
+}
+
+async function renderProfilePhoto(containerId,userId,name){
+  const container=$(containerId);
+  if(!container)return;
+  container.replaceChildren();
+  container.textContent=initialsFor(name);
+  container.setAttribute("aria-label",`Foto de ${name||"usuario"}`);
+  if(!userId)return;
+  const url=await getProfilePhotoUrl(userId);
+  if(!url||!container.isConnected)return;
+  const img=document.createElement("img");
+  img.src=url;
+  img.alt=`Foto de perfil de ${name||"usuario"}`;
+  img.onerror=()=>{container.replaceChildren();container.textContent=initialsFor(name);};
+  container.replaceChildren(img);
+}
+
+async function renderProfilePhotoIntoElement(container,userId,name){
+  if(!container)return;
+  const url=await getProfilePhotoUrl(userId);
+  if(!url||!container.isConnected)return;
+  const img=document.createElement("img");
+  img.src=url;
+  img.alt=`Foto de perfil de ${name||"usuario"}`;
+  img.onerror=()=>{container.replaceChildren();container.textContent=initialsFor(name);};
+  container.replaceChildren(img);
+}
+
+async function saveProfilePhoto(targetUserId,file){
+  if(!currentUser||!profile||profile.active!==true)throw new Error("La sesión no está activa.");
+  if(targetUserId!==currentUser.id&&!isAdmin())throw new Error("Solo puedes cambiar tu propia foto.");
+  if(!file)throw new Error("Selecciona una imagen.");
+  if(!PROFILE_PHOTO_TYPES.includes(file.type))throw new Error("Formato no permitido. Usa JPG, PNG o WEBP.");
+  if(file.size>PROFILE_PHOTO_MAX_BYTES)throw new Error("La imagen supera el límite de 3 MB.");
+  const {error}=await db.storage.from(PROFILE_PHOTO_BUCKET).upload(`${targetUserId}/avatar`,file,{
+    upsert:true,contentType:file.type,cacheControl:"3600"
+  });
+  if(error)throw new Error(error.message||"No se pudo guardar la foto.");
+  if(targetUserId===currentUser.id){
+    await renderProfilePhoto("userAvatar",currentUser.id,profile.full_name||currentUser.email);
+  }
+}
+
+async function removeProfilePhoto(targetUserId){
+  if(!currentUser||!profile||profile.active!==true)throw new Error("La sesión no está activa.");
+  if(targetUserId!==currentUser.id&&!isAdmin())throw new Error("Solo puedes quitar tu propia foto.");
+  const {error}=await db.storage.from(PROFILE_PHOTO_BUCKET).remove([`${targetUserId}/avatar`]);
+  if(error)throw new Error(error.message||"No se pudo quitar la foto.");
+  if(targetUserId===currentUser.id)
+    await renderProfilePhoto("userAvatar",currentUser.id,profile.full_name||currentUser.email);
+}
+
 function statusPill(status){
   const span=document.createElement("span");
   span.className="pill";
@@ -520,7 +593,10 @@ function showLoggedOut(){
   ].forEach(id=>$(id).replaceChildren());
 
   $("usuarioInfo").textContent="";
+  $("userAvatar").replaceChildren();
   $("userAvatar").textContent="U";
+  $("myProfilePhoto").value="";
+  $("profilePhotoMessage").textContent="";
   document.querySelectorAll(".nav-button").forEach(button=>button.classList.toggle("active",button.dataset.view==="activityFormPanel"));
   document.querySelectorAll(".view-panel").forEach(panel=>panel.classList.toggle("hidden",panel.id!=="activityFormPanel"));
   $("myActivitiesCount").textContent="";
@@ -592,6 +668,7 @@ async function loadDashboard(){
   $("appPanel").classList.remove("hidden");
   $("usuarioInfo").textContent=
     `Usuario: ${profile.full_name?.trim()||currentUser.email} (${currentUser.email}) · Rol: ${profile.role}`;
+  await renderProfilePhoto("userAvatar",currentUser.id,profile.full_name?.trim()||currentUser.email);
 
   const allowedDepartments=isAdmin()
     ?departments
@@ -1339,7 +1416,18 @@ async function loadEmployees(){
     employees.forEach(employee=>{
       const card=document.createElement("article");
       card.className="employee-row";
-      addText(card,"strong",employee.full_name||"Sin nombre");
+      const profileLine=document.createElement("div");
+      profileLine.className="employee-profile-line";
+      const photo=document.createElement("div");
+      photo.className="avatar";
+      photo.textContent=initialsFor(employee.full_name||"Sin nombre");
+      photo.setAttribute("aria-label",`Foto de ${employee.full_name||"empleado"}`);
+      profileLine.appendChild(photo);
+      const nameWrap=document.createElement("div");
+      addText(nameWrap,"strong",employee.full_name||"Sin nombre");
+      profileLine.appendChild(nameWrap);
+      card.appendChild(profileLine);
+      renderProfilePhotoIntoElement(photo,employee.id,employee.full_name||"Sin nombre");
       const dept=departments.find(d=>String(d.id)===String(employee.department_id));
       addField(card,"Departamento",dept?.name||"No asignado",true);
       addField(card,"Rol",employee.role||"employee");
@@ -1370,6 +1458,43 @@ async function loadEmployees(){
         });
         card.appendChild(button);
       }
+      const photoTools=document.createElement("div");
+      photoTools.className="profile-tools no-print";
+      const photoLabel=document.createElement("label");
+      photoLabel.textContent="Cambiar foto:";
+      photoLabel.style.margin="0";
+      photoLabel.style.fontSize="12px";
+      const photoInput=document.createElement("input");
+      photoInput.type="file";
+      photoInput.accept="image/jpeg,image/png,image/webp";
+      photoInput.setAttribute("aria-label",`Seleccionar foto para ${employee.full_name||"empleado"}`);
+      photoInput.addEventListener("change",async()=>{
+        const file=photoInput.files?.[0];
+        if(!file)return;
+        photoInput.disabled=true;
+        try{
+          await saveProfilePhoto(employee.id,file);
+          await renderProfilePhotoIntoElement(photo,employee.id,employee.full_name||"Sin nombre");
+          showEmployeeMessage(`Foto actualizada para ${employee.full_name||"el empleado"}.`);
+        }catch(error){showEmployeeMessage(`No se pudo actualizar la foto: ${error.message}`);}
+        finally{photoInput.disabled=false;photoInput.value="";}
+      });
+      const removePhotoButton=document.createElement("button");
+      removePhotoButton.type="button";
+      removePhotoButton.className="secondary";
+      removePhotoButton.textContent="Quitar foto";
+      removePhotoButton.addEventListener("click",async()=>{
+        if(!window.confirm(`¿Quitar la foto de ${employee.full_name||"este empleado"}?`))return;
+        removePhotoButton.disabled=true;
+        try{
+          await removeProfilePhoto(employee.id);
+          photo.replaceChildren();photo.textContent=initialsFor(employee.full_name||"Sin nombre");
+          showEmployeeMessage(`Foto quitada para ${employee.full_name||"el empleado"}.`);
+        }catch(error){showEmployeeMessage(`No se pudo quitar la foto: ${error.message}`);}
+        finally{removePhotoButton.disabled=false;}
+      });
+      photoTools.append(photoLabel,photoInput,removePhotoButton);
+      card.appendChild(photoTools);
       $("employeeList").appendChild(card);
     });
   }catch(error){
@@ -1737,6 +1862,35 @@ $("refreshRequestsBtn").addEventListener("click",()=>{
 });
 $("refreshAuditBtn").addEventListener("click",()=>{
   if(isAdmin())loadAuditLog();
+});
+
+$("myProfilePhoto").addEventListener("change",async()=>{
+  const file=$("myProfilePhoto").files?.[0];
+  if(!file)return;
+  $("myProfilePhoto").disabled=true;
+  $("profilePhotoMessage").textContent="Guardando foto...";
+  try{
+    await saveProfilePhoto(currentUser?.id,file);
+    $("profilePhotoMessage").textContent="Foto de perfil actualizada.";
+  }catch(error){
+    $("profilePhotoMessage").textContent=`No se pudo guardar la foto: ${error.message}`;
+  }finally{
+    $("myProfilePhoto").disabled=false;
+    $("myProfilePhoto").value="";
+  }
+});
+
+$("removeMyProfilePhoto").addEventListener("click",async()=>{
+  if(!currentUser||!profile)return;
+  if(!window.confirm("¿Deseas quitar tu foto de perfil?"))return;
+  $("removeMyProfilePhoto").disabled=true;
+  $("profilePhotoMessage").textContent="Quitando foto...";
+  try{
+    await removeProfilePhoto(currentUser.id);
+    $("profilePhotoMessage").textContent="Foto quitada. Se muestran tus iniciales.";
+  }catch(error){
+    $("profilePhotoMessage").textContent=`No se pudo quitar la foto: ${error.message}`;
+  }finally{$("removeMyProfilePhoto").disabled=false;}
 });
 
 $("logoutBtn").addEventListener("click",async()=>{
