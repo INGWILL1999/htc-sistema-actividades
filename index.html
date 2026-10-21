@@ -76,6 +76,17 @@ button.success{background:var(--green);color:#fff}
 .activity{border-left:4px solid var(--blue)}
 .activity strong{color:var(--navy);font-size:16px}
 .review-card{border-left:5px solid var(--blue);background:#fbfdff}
+/* Organización de reportes y filtros administrativos */
+#adminReportsPanel #reportControls{background:#f7faff;border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin:12px 0 16px;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 16px}
+#adminReportsPanel #reportControls .full{grid-column:auto}
+#adminReportsPanel #reportCount{margin:12px 0}
+#activityList .activity{padding:18px 20px;margin-top:12px}
+#employeeHistoryList{margin-top:18px}
+.history-week{border:1px solid var(--border);border-radius:14px;padding:16px;margin:14px 0;background:#fbfdff}
+.history-week h3{margin:0 0 8px;font-size:17px}
+.history-meta{color:var(--muted);font-size:13px;margin:0 0 10px}
+.history-week .activity{background:#fff}
+@media(max-width:800px){#adminReportsPanel #reportControls{grid-template-columns:1fr}#adminReportsPanel #reportControls .full{grid-column:auto}}
 .request-card{border-left:5px solid #d97706;background:#fffdf8}
 .audit-card{font-size:14px;background:#fbfdff}
 .activity p,.employee-row p,.review-card p,.request-card p,.audit-card p{margin:8px 0}
@@ -444,11 +455,13 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
     <p id="weekLabel" class="muted"></p>
     <p id="reportCount" class="muted"></p>
     <div class="actions no-print">
-      <button id="refreshBtn" class="primary" type="button">Consultar reporte</button>
+      <button id="refreshBtn" class="primary" type="button">Consultar semana</button>
+      <button id="historyBtn" class="secondary" type="button">Ver historial del empleado</button>
       <button id="printBtn" class="secondary" type="button">Imprimir / Guardar PDF</button>
     </div>
     <p id="reportMessage" class="message" role="status" aria-live="polite"></p>
     <div id="activityList" aria-live="polite"></div>
+    <div id="employeeHistoryList" aria-live="polite"></div>
 
   </section>
 
@@ -999,6 +1012,8 @@ async function loadAdminActivities(){
   showReportMessage("");
   const list=$("activityList");
   list.replaceChildren();
+  const historyContainer=$("employeeHistoryList");
+  if(historyContainer)historyContainer.replaceChildren();
   list.textContent="Cargando actividades...";
   $("reportCount").textContent="";
 
@@ -1062,6 +1077,59 @@ async function loadAdminActivities(){
     department:selectedDepartment,
     employee:selectedEmployee
   };
+}
+
+async function loadEmployeeHistory(){
+  if(!isAdmin())return;
+  const departmentId=$("reportDepartment").value;
+  const employeeId=$("reportEmployee").value;
+  const container=$("employeeHistoryList");
+  const activityList=$("activityList");
+  container.replaceChildren();
+  activityList.replaceChildren();
+  showReportMessage("");
+  if(employeeId==="all"){
+    showReportMessage("Primero selecciona un departamento y después un empleado para consultar su historial completo.");
+    return;
+  }
+  const employee=employeeCache.find(e=>e.id===employeeId);
+  const departmentName=departments.find(d=>String(d.id)===String(departmentId))?.name||"Departamento";
+  const heading=document.createElement("div");
+  heading.className="page-intro";
+  const headingText=document.createElement("div");
+  const kicker=document.createElement("div");kicker.className="kicker";kicker.textContent="Historial individual";
+  const title=document.createElement("h2");title.textContent=employee?.full_name||"Empleado seleccionado";
+  const subtitle=document.createElement("p");subtitle.className="muted";subtitle.textContent=`${departmentName} · Reportes semanales registrados`;
+  headingText.append(kicker,title,subtitle);heading.appendChild(headingText);container.appendChild(heading);
+  const status=document.createElement("p");status.className="muted";status.textContent="Cargando historial...";container.appendChild(status);
+  let query=db.from("activities").select("id,user_id,department_id,title,activity_date,activity_time,description,deadline_met,observations,status").eq("user_id",employeeId);
+  if(departmentId!=="all")query=query.eq("department_id",Number(departmentId));
+  const {data:activities,error}=await query.order("activity_date",{ascending:false}).order("activity_time",{ascending:false});
+  if(error){console.error("Error al consultar historial:",error);status.textContent=`No se pudo cargar el historial: ${error.message||"error de consulta"}`;return;}
+  if(!activities?.length){status.textContent="Este empleado todavía no tiene actividades registradas.";return;}
+  const {data:reviews, error:reviewError}=await db.from("report_reviews").select("employee_id,week_start,status,observations,reviewed_at").eq("employee_id",employeeId).order("week_start",{ascending:false});
+  if(reviewError)console.warn("No se pudieron cargar los estados históricos de revisión:",reviewError);
+  const byWeek=new Map();
+  for(const activity of activities){
+    const date=new Date(`${activity.activity_date}T12:00:00`);
+    const day=date.getDay();
+    date.setDate(date.getDate()-(day===0?6:day-1));
+    const weekStart=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+    if(!byWeek.has(weekStart))byWeek.set(weekStart,[]);
+    byWeek.get(weekStart).push(activity);
+  }
+  const names={[employeeId]:employee?.full_name||"Empleado"};
+  status.textContent=`${activities.length} actividades en ${byWeek.size} semana(s).`;
+  for(const [weekStart,weekActivities] of byWeek){
+    const card=document.createElement("section");card.className="history-week";
+    const title=document.createElement("h3");title.textContent=`Semana del ${weekStart}`;card.appendChild(title);
+    const review=(reviews||[]).find(r=>r.week_start===weekStart);
+    const meta=document.createElement("p");meta.className="history-meta";meta.textContent=`${weekActivities.length} actividad(es) · Estado: ${review?.status||REVIEW_PENDING}`;card.appendChild(meta);
+    if(review?.observations){const obs=document.createElement("p");obs.textContent=`Observaciones del administrador: ${review.observations}`;card.appendChild(obs);}
+    weekActivities.forEach(activity=>card.appendChild(renderActivity(activity,names,true)));
+    container.appendChild(card);
+  }
+  showReportMessage("Historial del empleado cargado correctamente.");
 }
 
 async function getProfileNames(ids){
@@ -1976,6 +2044,13 @@ $("activityForm").addEventListener("submit",async event=>{
   }finally{
     $("saveBtn").disabled=false;
   }
+});
+
+$("historyBtn").addEventListener("click",async()=>{
+  const button=$("historyBtn");button.disabled=true;
+  try{await loadEmployeeHistory();}
+  catch(error){console.error("Error inesperado al cargar historial:",error);showReportMessage("Ocurrió un error al cargar el historial del empleado.");}
+  finally{button.disabled=false;}
 });
 
 $("reportDepartment").addEventListener("change",()=>{
