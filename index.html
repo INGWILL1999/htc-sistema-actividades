@@ -579,6 +579,7 @@ let reviewCache=[];
 const REVIEW_PENDING="Pendiente de revisión";
 const REVIEW_ACCEPTED="Aceptado";
 const REVIEW_REJECTED="Rechazado";
+const REVIEW_REVERIFY="Reverificar";
 
 function localDate(date){
   const y=date.getFullYear();
@@ -748,6 +749,7 @@ function statusPill(status){
   span.className="pill";
   if(status===REVIEW_ACCEPTED)span.classList.add("accepted");
   else if(status===REVIEW_REJECTED)span.classList.add("rejected");
+  else if(status===REVIEW_REVERIFY)span.classList.add("rejected");
   else span.classList.add("pending");
   span.textContent=status||REVIEW_PENDING;
   return span;
@@ -1194,7 +1196,8 @@ async function loadAdminReviews(activities,weekStart){
     statusSelect.append(
       new Option(REVIEW_PENDING,REVIEW_PENDING),
       new Option(REVIEW_ACCEPTED,REVIEW_ACCEPTED),
-      new Option(REVIEW_REJECTED,REVIEW_REJECTED)
+      new Option(REVIEW_REJECTED,REVIEW_REJECTED),
+      new Option(REVIEW_REVERIFY,REVIEW_REVERIFY)
     );
     statusSelect.value=existing?.status||REVIEW_PENDING;
     statusLabel.appendChild(statusSelect);
@@ -1218,12 +1221,12 @@ async function loadAdminReviews(activities,weekStart){
         return;
       }
       const status=statusSelect.value;
-      if(![REVIEW_PENDING,REVIEW_ACCEPTED,REVIEW_REJECTED].includes(status)){
+      if(![REVIEW_PENDING,REVIEW_ACCEPTED,REVIEW_REJECTED,REVIEW_REVERIFY].includes(status)){
         showMessage("Estado de revisión no válido.");
         return;
       }
-      if(status===REVIEW_REJECTED&&!obs.value.trim()){
-        showMessage("Escribe las observaciones para explicar el rechazo.");
+      if([REVIEW_REJECTED,REVIEW_REVERIFY].includes(status)&&!obs.value.trim()){
+        showMessage(status===REVIEW_REVERIFY?"Escribe las observaciones que indiquen qué debe verificarse nuevamente.":"Escribe las observaciones para explicar el rechazo.");
         obs.focus();
         return;
       }
@@ -2103,3 +2106,4 @@ loadDashboard().catch(error=>{
 </script>
 </body>
 </html>
+
