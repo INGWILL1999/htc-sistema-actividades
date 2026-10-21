@@ -340,8 +340,8 @@ body.htc-is-loading{overflow:hidden}
 
 </style>
 </head>
-<body>
-<div id="htcLoadingOverlay" class="is-hidden" role="status" aria-live="polite" aria-hidden="true">
+<body class="htc-is-loading">
+<div id="htcLoadingOverlay" role="status" aria-live="polite" aria-hidden="false">
   <div class="htc-loader-card">
     <img id="htcLoaderLogo" class="htc-loader-logo hidden" alt="Logotipo Human Test Center">
     <div id="htcLoaderMonogram" class="htc-loader-monogram">HTC</div>
@@ -2024,6 +2024,12 @@ function hideHtcLoading(){
   if(htcLoadingTimer){clearTimeout(htcLoadingTimer);htcLoadingTimer=null;}
 }
 
+// Pantalla de bienvenida al abrir el sitio, antes de mostrar el inicio de sesión.
+showHtcLoading("Bienvenido a Human Test Center · Preparando tu acceso");
+htcLoadingTimer=setTimeout(()=>{
+  hideHtcLoading();
+},1600);
+
 $("loginForm").addEventListener("submit",async event=>{
   event.preventDefault();
   $("loginBtn").disabled=true;
@@ -2344,5 +2350,4 @@ loadDashboard().catch(error=>{
 </script>
 </body>
 </html>
-
 
