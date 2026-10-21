@@ -406,7 +406,8 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
           <textarea id="observations"></textarea>
         </div>
       </div>
-      <button id="saveBtn" class="primary" type="submit">Guardar actividad</button>
+      <div class="actions"><button id="saveBtn" class="primary" type="submit">Guardar actividad</button><button id="cancelEditBtn" class="secondary hidden" type="button">Cancelar edición</button></div>
+    <p id="editModeNotice" class="muted hidden">Estás corrigiendo una actividad de un reporte marcado como Reverificar.</p>
     </form>
     <p id="formMessage" class="message" role="status" aria-live="polite"></p>
   </section>
@@ -574,6 +575,8 @@ let employeeCache=[];
 let reportActivities=[];
 let visibleReportActivities=[];
 let ownReportActivities=[];
+let editingActivityId=null;
+let ownReportCanEdit=false;
 let reviewCache=[];
 
 const REVIEW_PENDING="Pendiente de revisión";
@@ -768,6 +771,8 @@ function showLoggedOut(){
   reportActivities=[];
   visibleReportActivities=[];
   ownReportActivities=[];
+  editingActivityId=null;
+  ownReportCanEdit=false;
   reviewCache=[];
 
   $("loginPanel").classList.remove("hidden");
@@ -1092,6 +1097,41 @@ function renderActivity(activity,names={},admin=false){
   return article;
 }
 
+function clearActivityEditMode(){
+  editingActivityId=null;
+  $("activityForm").reset();
+  $("activityDate").value=localDate(new Date());
+  $("status").value="Pendiente";
+  if(!isAdmin()&&profile)$("department").value=String(profile.department_id);
+  $("saveBtn").textContent="Guardar actividad";
+  $("cancelEditBtn").classList.add("hidden");
+  $("editModeNotice").classList.add("hidden");
+  showFormMessage("");
+}
+
+function beginEditActivity(activity){
+  if(!currentUser||activity.user_id!==currentUser.id||!ownReportCanEdit){
+    showEmployeeMessage("Solo puedes corregir tus propias actividades cuando el reporte está en Reverificar.");
+    return;
+  }
+  editingActivityId=activity.id;
+  $("department").value=String(activity.department_id);
+  $("activityDate").value=activity.activity_date||"";
+  $("activityTime").value=activity.activity_time||"";
+  $("title").value=activity.title||"";
+  $("description").value=activity.description||"";
+  $("deadline").value=activity.deadline_met===null||activity.deadline_met===undefined?"":String(activity.deadline_met);
+  $("status").value=activity.status||"Pendiente";
+  $("observations").value=activity.observations||"";
+  $("saveBtn").textContent="Guardar corrección";
+  $("cancelEditBtn").classList.remove("hidden");
+  $("editModeNotice").classList.remove("hidden");
+  showFormMessage("Corrige los campos y guarda los cambios. Si Supabase bloquea la actualización, será necesario revisar la política UPDATE existente.");
+  setActiveView("activityFormPanel");
+}
+
+$("cancelEditBtn").addEventListener("click",clearActivityEditMode);
+
 async function loadOwnActivities(){
   const range=getWeekRange($("myReportWeek").value);
   const list=$("myActivityList");
@@ -1104,6 +1144,11 @@ async function loadOwnActivities(){
 
   const [startDate,endDate]=range;
   ownReportActivities=[];
+  ownReportCanEdit=false;
+  const {data:reviewForEdit,error:reviewForEditError}=await db.from("report_reviews")
+    .select("status").eq("employee_id",currentUser.id).eq("week_start",startDate).maybeSingle();
+  if(reviewForEditError){ console.error("No se pudo comprobar el estado de edición:",reviewForEditError); }
+  ownReportCanEdit=reviewForEdit?.status===REVIEW_REVERIFY;
   list.textContent="Cargando tus actividades...";
   const {data,error}=await db.from("activities").select(`
     id,user_id,department_id,title,activity_date,activity_time,
@@ -1129,7 +1174,18 @@ async function loadOwnActivities(){
     return;
   }
 
-  data.forEach(a=>list.appendChild(renderActivity(a,{},false)));
+  data.forEach(a=>{
+    const card=renderActivity(a,{},false);
+    if(ownReportCanEdit){
+      const actions=document.createElement("div");
+      actions.className="actions no-print";
+      const edit=document.createElement("button");
+      edit.type="button"; edit.className="primary"; edit.textContent="Corregir actividad";
+      edit.addEventListener("click",()=>beginEditActivity(a));
+      actions.appendChild(edit); card.appendChild(actions);
+    }
+    list.appendChild(card);
+  });
 }
 
 async function loadAdminReviews(activities,weekStart){
@@ -1298,6 +1354,8 @@ async function loadEmployeeReviewAndRequests(){
     if(review.status===REVIEW_ACCEPTED){
       $("requestReopenBtn").disabled=false;
       $("reopenEligibility").textContent="Reporte aprobado: puedes enviar una solicitud. No se desbloqueará hasta que el administrador la apruebe.";
+    }else if(review.status===REVIEW_REVERIFY){
+      $("reopenEligibility").textContent="Este reporte está en Reverificar. Regresa a Mis reportes y pulsa Corregir actividad; no necesitas solicitar reapertura.";
     }else{
       $("reopenEligibility").textContent=`Estado actual: ${review.status}. Solo se puede solicitar reapertura de un reporte aprobado.`;
     }
@@ -1876,21 +1934,42 @@ $("activityForm").addEventListener("submit",async event=>{
       updated_at:new Date().toISOString()
     };
 
-    const {error}=await db.from("activities").insert(activity);
-    if(error){
-      console.error("Error al guardar actividad:",error);
-      showFormMessage(error.code==="42501"
-        ?"Supabase bloqueó el registro. Si la semana está aceptada, solicita su reapertura."
-        :"No se pudo guardar la actividad. Verifica los permisos de Supabase.");
+    let saveError=null;
+    if(editingActivityId){
+      if(isAdmin()||!ownReportCanEdit){
+        showFormMessage("La edición solo está habilitada para el empleado propietario cuando el reporte está en Reverificar.");
+        return;
+      }
+      const result=await db.from("activities").update(activity)
+        .eq("id",editingActivityId).eq("user_id",currentUser.id).select("id").maybeSingle();
+      saveError=result.error;
+      if(!saveError&&!result.data){
+        showFormMessage("No se actualizó la actividad. Supabase puede estar bloqueando UPDATE por las políticas RLS actuales.");
+        return;
+      }
+    }else{
+      const result=await db.from("activities").insert(activity);
+      saveError=result.error;
+    }
+    if(saveError){
+      console.error("Error al guardar actividad:",saveError);
+      showFormMessage(saveError.code==="42501"
+        ?"Supabase bloqueó el cambio por permisos o políticas RLS. No se modificaron las políticas automáticamente."
+        :"No se pudo guardar la actividad. Revisa el error de permisos en la consola del navegador.");
       return;
     }
 
-    showFormMessage("Actividad guardada correctamente.");
-    $("activityForm").reset();
-    $("activityDate").value=localDate(new Date());
-    $("status").value="Pendiente";
-    if(!isAdmin())$("department").value=String(profile.department_id);
+    const wasEdit=Boolean(editingActivityId);
+    showFormMessage(wasEdit?"Corrección guardada correctamente.":"Actividad guardada correctamente.");
+    if(wasEdit)clearActivityEditMode();
+    else{
+      $("activityForm").reset();
+      $("activityDate").value=localDate(new Date());
+      $("status").value="Pendiente";
+      if(!isAdmin())$("department").value=String(profile.department_id);
+    }
     await loadActivities();
+    if(!isAdmin())await loadOwnActivities();
   }catch(error){
     console.error(error);
     showFormMessage("Ocurrió un error al guardar la actividad.");
