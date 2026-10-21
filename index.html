@@ -88,6 +88,12 @@ button.success{background:var(--green);color:#fff}
 .history-week .activity{background:#fff}
 @media(max-width:800px){#adminReportsPanel #reportControls{grid-template-columns:1fr}#adminReportsPanel #reportControls .full{grid-column:auto}}
 .request-card{border-left:5px solid #d97706;background:#fffdf8}
+.reopen-weeks-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:12px 0 22px}
+.reopen-week-card{border:1px solid var(--border);border-radius:13px;padding:15px;background:#fff;display:flex;flex-direction:column;gap:8px}
+.reopen-week-card.selected{border:2px solid var(--blue);box-shadow:0 0 0 3px #1976d21a}
+.reopen-week-card .week-title{font-weight:800;color:var(--navy)}
+.reopen-week-card .week-meta{font-size:.9rem;color:var(--muted)}
+.reopen-week-card button{margin-top:auto;align-self:flex-start}
 .audit-card{font-size:14px;background:#fbfdff}
 .activity p,.employee-row p,.review-card p,.request-card p,.audit-card p{margin:8px 0}
 .pill{display:inline-block;padding:5px 10px;border-radius:30px;background:#e2e8f0;font-size:12px;font-weight:800}
@@ -537,9 +543,12 @@ body.htc-is-loading{overflow:hidden}
   <section id="employeeReopenPanel" class="panel hidden view-panel">
     <div class="page-intro"><div><div class="kicker">Correcciones controladas</div><h2>Solicitar reapertura de una actividad</h2><p>Solicita autorización para corregir una semana que ya fue aprobada.</p></div></div>
     <div class="notice-card"><strong>¿Cómo funciona?</strong><p>Selecciona la semana aprobada, explica qué necesitas corregir y envía la solicitud. La actividad no se desbloquea hasta que el administrador autorice la reapertura.</p></div>
+    <div class="notice-card"><strong>1. Elige uno de tus reportes semanales</strong><p>Las semanas se mostrarán aquí según tus actividades y revisiones. Solo podrás solicitar reapertura de un reporte aceptado.</p></div>
+    <div id="reopenWeeksList" class="reopen-weeks-list" aria-live="polite"><p class="muted">Cargando tus semanas...</p></div>
     <form id="reopenForm">
+      <h3>2. Explica qué necesitas corregir</h3>
       <div class="grid">
-        <div><label for="reopenWeek">Semana del reporte que necesitas corregir</label><input id="reopenWeek" type="week" required></div>
+        <div><label for="reopenWeek">Semana seleccionada</label><input id="reopenWeek" type="week" required readonly aria-describedby="reopenEligibility"></div>
         <div><label for="reopenReasonType">Motivo</label><select id="reopenReasonType" required><option value="">Selecciona un motivo</option><option value="Corrección de información">Corrección de información</option><option value="Actividad omitida">Actividad omitida</option><option value="Error en fecha, estado u observaciones">Error en fecha, estado u observaciones</option><option value="Otro motivo">Otro motivo</option></select></div>
         <div class="full"><label for="reopenReason">Explica qué información necesitas corregir</label><textarea id="reopenReason" minlength="5" maxlength="2000" required placeholder="Describe el dato que debe corregirse y el motivo."></textarea></div>
       </div>
@@ -1441,7 +1450,79 @@ async function loadAdminReviews(activities,weekStart){
   }
 }
 
-async function loadEmployeeReviewAndRequests(){
+async function loadReopenWeeks(){
+  const container=$("reopenWeeksList");
+  if(!container||!currentUser||isAdmin())return;
+  container.replaceChildren();
+  const {data:activities,error:activityError}=await db.from("activities")
+    .select("activity_date")
+    .eq("user_id",currentUser.id)
+    .order("activity_date",{ascending:false})
+    .limit(1000);
+  if(activityError){
+    console.error("Error al consultar semanas de actividades:",activityError);
+    container.textContent="No se pudieron consultar tus semanas de actividades. Intenta actualizar la pantalla.";
+    return;
+  }
+  const {data:reviews,error:reviewsError}=await db.from("report_reviews")
+    .select("week_start,status,observations")
+    .eq("employee_id",currentUser.id)
+    .order("week_start",{ascending:false});
+  if(reviewsError){
+    console.error("Error al consultar revisiones para reapertura:",reviewsError);
+    container.textContent="No se pudieron consultar los estados de tus reportes. Intenta actualizar la pantalla.";
+    return;
+  }
+  const weekMap=new Map();
+  (activities||[]).forEach(a=>{
+    if(!a.activity_date)return;
+    const value=getISOWeekValueUTC(new Date(`${a.activity_date}T12:00:00Z`));
+    if(!weekMap.has(value))weekMap.set(value,{value,count:0,review:null});
+    weekMap.get(value).count++;
+  });
+  (reviews||[]).forEach(review=>{
+    const value=getISOWeekValueUTC(new Date(`${review.week_start}T12:00:00Z`));
+    if(!weekMap.has(value))weekMap.set(value,{value,count:0,review:null});
+    weekMap.get(value).review=review;
+  });
+  const weeks=[...weekMap.values()].sort((a,b)=>b.value.localeCompare(a.value));
+  if(!weeks.length){
+    container.textContent="Todavía no hay semanas con actividades o revisiones asociadas a tu cuenta.";
+    return;
+  }
+  const selected=$("reopenWeek").value;
+  weeks.forEach(item=>{
+    const range=getWeekRange(item.value);
+    const card=document.createElement("article");
+    card.className="reopen-week-card"+(item.value===selected?" selected":"");
+    const title=addText(card,"div",`Semana ${item.value.slice(-2)}, ${item.value.slice(0,4)}`);
+    title.className="week-title";
+    addText(card,"div",range?`${range[0]} al ${range[1]}`:item.value).className="week-meta";
+    addText(card,"div",`${item.count} ${item.count===1?"actividad registrada":"actividades registradas"}`).className="week-meta";
+    const status=item.review?.status||"Pendiente de revisión";
+    const statusLine=document.createElement("div");
+    statusLine.appendChild(document.createTextNode("Revisión: "));
+    statusLine.appendChild(statusPill(status));
+    card.appendChild(statusLine);
+    const button=document.createElement("button");
+    button.type="button";
+    button.className=item.value===selected?"primary":"secondary";
+    button.textContent=item.value===selected?"Semana seleccionada":"Seleccionar semana";
+    button.addEventListener("click",async()=>{
+      $("reopenWeek").value=item.value;
+      container.querySelectorAll(".reopen-week-card").forEach(c=>c.classList.remove("selected"));
+      card.classList.add("selected");
+      container.querySelectorAll(".reopen-week-card button").forEach(b=>{b.textContent="Seleccionar semana";b.className="secondary";});
+      button.textContent="Semana seleccionada";button.className="primary";
+      await loadEmployeeReviewAndRequests(false);
+    });
+    card.appendChild(button);
+    container.appendChild(card);
+  });
+}
+
+async function loadEmployeeReviewAndRequests(refreshWeeks=true){
+  if(refreshWeeks)await loadReopenWeeks();
   const range=getWeekRange($("reopenWeek").value);
   $("myReviewStatus").replaceChildren();
   $("requestReopenBtn").disabled=true;
@@ -1605,9 +1686,20 @@ async function loadAdminRequests(){
 
   container.replaceChildren();
   if(!data||!data.length){
-    container.textContent="No hay solicitudes registradas.";
+    const empty=document.createElement("div");
+    empty.className="notice-card";
+    addText(empty,"strong","Todavía no hay solicitudes de reapertura");
+    addText(empty,"p","Cuando un empleado envíe una solicitud para un reporte aceptado, aparecerá aquí para que puedas aprobarla o rechazarla. Esto no significa que haya un error.");
+    container.appendChild(empty);
     return;
   }
+  data.sort((a,b)=>Number(b.status==="Pendiente")-Number(a.status==="Pendiente") || new Date(b.created_at||0)-new Date(a.created_at||0));
+  const summary=document.createElement("div");
+  summary.className="notice-card";
+  const pendingCount=data.filter(r=>r.status==="Pendiente").length;
+  addText(summary,"strong",`${pendingCount} solicitud(es) pendiente(s) · ${data.length-pendingCount} resuelta(s)`);
+  addText(summary,"p","Las pendientes aparecen primero. Aprobar permite continuar con la corrección autorizada; rechazar mantiene el reporte cerrado.");
+  container.appendChild(summary);
 
   const ids=[...new Set(data.map(r=>r.employee_id).filter(Boolean))];
   const names=await getProfileNames(ids);
