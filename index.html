@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+adlineValue==="true",
+      observations:$("observations").value.trim(),<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -76,24 +77,7 @@ button.success{background:var(--green);color:#fff}
 .activity{border-left:4px solid var(--blue)}
 .activity strong{color:var(--navy);font-size:16px}
 .review-card{border-left:5px solid var(--blue);background:#fbfdff}
-/* Organización de reportes y filtros administrativos */
-#adminReportsPanel #reportControls{background:#f7faff;border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin:12px 0 16px;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 16px}
-#adminReportsPanel #reportControls .full{grid-column:auto}
-#adminReportsPanel #reportCount{margin:12px 0}
-#activityList .activity{padding:18px 20px;margin-top:12px}
-#employeeHistoryList{margin-top:18px}
-.history-week{border:1px solid var(--border);border-radius:14px;padding:16px;margin:14px 0;background:#fbfdff}
-.history-week h3{margin:0 0 8px;font-size:17px}
-.history-meta{color:var(--muted);font-size:13px;margin:0 0 10px}
-.history-week .activity{background:#fff}
-@media(max-width:800px){#adminReportsPanel #reportControls{grid-template-columns:1fr}#adminReportsPanel #reportControls .full{grid-column:auto}}
 .request-card{border-left:5px solid #d97706;background:#fffdf8}
-.reopen-weeks-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:12px 0 22px}
-.reopen-week-card{border:1px solid var(--border);border-radius:13px;padding:15px;background:#fff;display:flex;flex-direction:column;gap:8px}
-.reopen-week-card.selected{border:2px solid var(--blue);box-shadow:0 0 0 3px #1976d21a}
-.reopen-week-card .week-title{font-weight:800;color:var(--navy)}
-.reopen-week-card .week-meta{font-size:.9rem;color:var(--muted)}
-.reopen-week-card button{margin-top:auto;align-self:flex-start}
 .audit-card{font-size:14px;background:#fbfdff}
 .activity p,.employee-row p,.review-card p,.request-card p,.audit-card p{margin:8px 0}
 .pill{display:inline-block;padding:5px 10px;border-radius:30px;background:#e2e8f0;font-size:12px;font-weight:800}
@@ -133,230 +117,9 @@ hr{border:0;border-top:1px solid var(--border);margin:24px 0}
   a{color:#111;text-decoration:none}
 }
 .notice-card{border:1px solid var(--border,#dbe3ee);background:var(--surface-soft,#f5f8fc);border-radius:14px;padding:16px;margin:12px 0 20px}.notice-card p{margin:6px 0 0;color:var(--muted,#5b6778);line-height:1.55}
-/* ==========================================
-   HUMAN TEST CENTER
-   MEJORA VISUAL DE FOTOS DE PERFIL
-   ========================================== */
-
-/* Encabezado del usuario */
-#userPanel {
-  padding: 28px;
-}
-
-#userPanel .app-top {
-  gap: 24px;
-  align-items: center;
-  min-height: 132px;
-}
-
-/* Foto de perfil más grande */
-#userPanel .user-card {
-  flex: 1;
-  gap: 24px;
-  align-items: center;
-}
-
-#userPanel .avatar {
-  width: 112px;
-  height: 112px;
-  min-width: 112px;
-  flex: 0 0 112px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid #ffffff;
-  outline: 2px solid #cfe2f8;
-  background: linear-gradient(135deg, #e2efff, #f5f9ff);
-  color: #0f5ca8;
-  font-size: 30px;
-  box-shadow: 0 5px 18px rgba(16, 42, 67, 0.15);
-}
-
-#userPanel .avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-/* Datos de usuario y rol */
-#usuarioInfo {
-  font-size: 19px;
-  line-height: 1.6;
-  font-weight: 800;
-  color: #102a43;
-  margin-bottom: 10px;
-}
-
-#usuarioInfo small {
-  font-size: 15px;
-  line-height: 1.5;
-  margin-top: 4px;
-}
-
-/* Controles de fotografía */
-#userPanel .profile-tools {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-
-#userPanel .profile-tools label {
-  font-size: 15px !important;
-  font-weight: 800;
-  color: #163f66 !important;
-  margin: 0 !important;
-}
-
-#userPanel .profile-tools input[type="file"] {
-  width: auto;
-  max-width: min(100%, 360px);
-  min-height: 46px;
-  padding: 8px 10px;
-  border: 1px solid #cbdcf0;
-  border-radius: 10px;
-  background: #f8fbff;
-  font-size: 14px;
-}
-
-#userPanel .profile-tools button {
-  min-height: 44px;
-  padding: 11px 18px;
-  border-radius: 10px;
-  font-size: 14px;
-}
-
-/* Mensaje de estado */
-#profilePhotoMessage {
-  min-height: 20px;
-  margin-top: 10px;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-/* Botón de cerrar sesión */
-#logoutBtn {
-  flex-shrink: 0;
-  min-height: 48px;
-  padding: 13px 22px;
-  border-radius: 11px;
-  font-size: 15px;
-}
-
-/* Adaptación para tabletas */
-@media (max-width: 800px) {
-  #userPanel {
-    padding: 22px;
-  }
-
-  #userPanel .user-card {
-    gap: 18px;
-  }
-
-  #userPanel .avatar {
-    width: 92px;
-    height: 92px;
-    min-width: 92px;
-    flex-basis: 92px;
-  }
-
-  #usuarioInfo {
-    font-size: 17px;
-  }
-}
-
-/* Adaptación para celulares */
-@media (max-width: 520px) {
-  #userPanel {
-    padding: 18px;
-  }
-
-  #userPanel .app-top {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 18px;
-  }
-
-  #userPanel .user-card {
-    align-items: flex-start;
-    gap: 15px;
-  }
-
-  #userPanel .avatar {
-    width: 76px;
-    height: 76px;
-    min-width: 76px;
-    flex-basis: 76px;
-    font-size: 24px;
-  }
-
-  #usuarioInfo {
-    font-size: 15px;
-    overflow-wrap: anywhere;
-  }
-
-  #usuarioInfo small {
-    font-size: 13px;
-  }
-
-  #userPanel .profile-tools {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 9px;
-  }
-
-  #userPanel .profile-tools input[type="file"] {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  #logoutBtn {
-    width: 100%;
-  }
-}
-
-/* Mantener el encabezado compacto al imprimir */
-@media print {
-  #userPanel {
-    display: none !important;
-  }
-}
-
-/* Pantalla de carga institucional y transiciones entre módulos */
-#htcLoadingOverlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 35%,#1e5d88 0%,#102a43 55%,#081827 100%);color:#fff;opacity:1;visibility:visible;transition:opacity .22s ease,visibility .22s ease}
-#htcLoadingOverlay.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
-.htc-loader-card{width:min(390px,100%);text-align:center;padding:34px 26px;border:1px solid #ffffff2b;border-radius:24px;background:#ffffff0d;box-shadow:0 24px 80px #0003;backdrop-filter:blur(10px);animation:htcCardIn .45s cubic-bezier(.2,.8,.2,1) both}
-.htc-loader-logo{width:88px;height:88px;object-fit:contain;border-radius:22px;background:#fff;padding:6px;box-shadow:0 0 0 7px #ffffff12;animation:htcLogoPulse 1.8s ease-in-out infinite}
-.htc-loader-monogram{width:88px;height:88px;margin:auto;display:grid;place-items:center;border-radius:22px;background:linear-gradient(135deg,#fff,#dceeff);color:#102a43;font-size:27px;font-weight:900;letter-spacing:-2px;animation:htcLogoPulse 1.8s ease-in-out infinite}
-.htc-loader-title{margin:20px 0 4px;font-size:22px;font-weight:850;letter-spacing:.2px}
-.htc-loader-subtitle{margin:0;color:#d8e8f8;font-size:13px}
-.htc-loader-track{height:5px;margin:24px auto 12px;max-width:230px;overflow:hidden;border-radius:20px;background:#ffffff24}
-.htc-loader-track span{display:block;width:42%;height:100%;border-radius:20px;background:linear-gradient(90deg,#42d6e8,#fff);animation:htcProgress 1.15s ease-in-out infinite}
-.htc-loader-dots{display:inline-flex;gap:5px;margin-left:4px;vertical-align:middle}
-.htc-loader-dots i{width:5px;height:5px;border-radius:50%;background:#fff;animation:htcDot 1s ease-in-out infinite}
-.htc-loader-dots i:nth-child(2){animation-delay:.15s}.htc-loader-dots i:nth-child(3){animation-delay:.3s}
-@keyframes htcProgress{0%{transform:translateX(-110%)}100%{transform:translateX(350%)}}
-@keyframes htcLogoPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 7px #ffffff12}50%{transform:scale(1.045);box-shadow:0 0 0 12px #ffffff08}}
-@keyframes htcDot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px)}}
-@keyframes htcCardIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-body.htc-is-loading{overflow:hidden}
-@media(prefers-reduced-motion:reduce){#htcLoadingOverlay,.htc-loader-card,.htc-loader-logo,.htc-loader-monogram,.htc-loader-track span,.htc-loader-dots i{animation:none!important;transition:none!important}}
-@media print{#htcLoadingOverlay{display:none!important}}
-
 </style>
 </head>
-<body class="htc-is-loading">
-<div id="htcLoadingOverlay" role="status" aria-live="polite" aria-hidden="false">
-  <div class="htc-loader-card">
-    <img id="htcLoaderLogo" class="htc-loader-logo hidden" alt="Logotipo Human Test Center">
-    <div id="htcLoaderMonogram" class="htc-loader-monogram">HTC</div>
-    <div class="htc-loader-title">Human Test Center</div>
-    <p class="htc-loader-subtitle" id="htcLoaderMessage">Preparando tu espacio de trabajo</p>
-    <div class="htc-loader-track" aria-hidden="true"><span></span></div>
-    <div style="font-size:12px;color:#d8e8f8">Cargando<span class="htc-loader-dots"><i></i><i></i><i></i></span></div>
-  </div>
-</div>
+<body>
 <header>
   <div class="header-mark"><img id="headerLogo" alt="Logotipo Human Test Center" class="hidden"><span id="headerMarkFallback" class="mark-fallback">HTC</span></div>
   <div><h1>Human Test Center</h1><p>Sistema de Registro y Control de Actividades Semanales</p></div>
@@ -455,8 +218,7 @@ body.htc-is-loading{overflow:hidden}
           <textarea id="observations"></textarea>
         </div>
       </div>
-      <div class="actions"><button id="saveBtn" class="primary" type="submit">Guardar actividad</button><button id="cancelEditBtn" class="secondary hidden" type="button">Cancelar edición</button></div>
-    <p id="editModeNotice" class="muted hidden">Estás corrigiendo una actividad de un reporte marcado como Reverificar.</p>
+      <button id="saveBtn" class="primary" type="submit">Guardar actividad</button>
     </form>
     <p id="formMessage" class="message" role="status" aria-live="polite"></p>
   </section>
@@ -493,13 +255,11 @@ body.htc-is-loading{overflow:hidden}
     <p id="weekLabel" class="muted"></p>
     <p id="reportCount" class="muted"></p>
     <div class="actions no-print">
-      <button id="refreshBtn" class="primary" type="button">Consultar semana</button>
-      <button id="historyBtn" class="secondary" type="button">Ver historial del empleado</button>
+      <button id="refreshBtn" class="primary" type="button">Consultar reporte</button>
       <button id="printBtn" class="secondary" type="button">Imprimir / Guardar PDF</button>
     </div>
     <p id="reportMessage" class="message" role="status" aria-live="polite"></p>
     <div id="activityList" aria-live="polite"></div>
-    <div id="employeeHistoryList" aria-live="polite"></div>
 
   </section>
 
@@ -543,10 +303,12 @@ body.htc-is-loading{overflow:hidden}
   <section id="employeeReopenPanel" class="panel hidden view-panel">
     <div class="page-intro"><div><div class="kicker">Correcciones controladas</div><h2>Solicitar reapertura de una actividad</h2><p>Solicita autorización para corregir una semana que ya fue aprobada.</p></div></div>
     <div class="notice-card"><strong>¿Cómo funciona?</strong><p>Selecciona la semana aprobada, explica qué necesitas corregir y envía la solicitud. La actividad no se desbloquea hasta que el administrador autorice la reapertura.</p></div>
-    <div class="notice-card"><strong>1. Elige uno de tus reportes semanales</strong><p>Las semanas se mostrarán aquí según tus actividades y revisiones. Solo podrás solicitar reapertura de un reporte aceptado.</p></div>
-    <div id="reopenWeeksList" class="reopen-weeks-list" aria-live="polite"><p class="muted">Cargando tus semanas...</p></div>
+    <div class="notice-card">
+      <strong>1. Elige una semana con actividades</strong>
+      <p>Estas semanas se obtienen de tus actividades registradas. Revisa el estado antes de solicitar la reapertura.</p>
+      <div id="reopenWeeksList" aria-live="polite"><p class="muted">Cargando tus semanas...</p></div>
+    </div>
     <form id="reopenForm">
-      <h3>2. Explica qué necesitas corregir</h3>
       <div class="grid">
         <div><label for="reopenWeek">Semana seleccionada</label><input id="reopenWeek" type="week" required readonly aria-describedby="reopenEligibility"></div>
         <div><label for="reopenReasonType">Motivo</label><select id="reopenReasonType" required><option value="">Selecciona un motivo</option><option value="Corrección de información">Corrección de información</option><option value="Actividad omitida">Actividad omitida</option><option value="Error en fecha, estado u observaciones">Error en fecha, estado u observaciones</option><option value="Otro motivo">Otro motivo</option></select></div>
@@ -629,14 +391,11 @@ let employeeCache=[];
 let reportActivities=[];
 let visibleReportActivities=[];
 let ownReportActivities=[];
-let editingActivityId=null;
-let ownReportCanEdit=false;
 let reviewCache=[];
 
 const REVIEW_PENDING="Pendiente de revisión";
 const REVIEW_ACCEPTED="Aceptado";
 const REVIEW_REJECTED="Rechazado";
-const REVIEW_REVERIFY="Reverificar";
 
 function localDate(date){
   const y=date.getFullYear();
@@ -806,7 +565,6 @@ function statusPill(status){
   span.className="pill";
   if(status===REVIEW_ACCEPTED)span.classList.add("accepted");
   else if(status===REVIEW_REJECTED)span.classList.add("rejected");
-  else if(status===REVIEW_REVERIFY)span.classList.add("rejected");
   else span.classList.add("pending");
   span.textContent=status||REVIEW_PENDING;
   return span;
@@ -825,8 +583,6 @@ function showLoggedOut(){
   reportActivities=[];
   visibleReportActivities=[];
   ownReportActivities=[];
-  editingActivityId=null;
-  ownReportCanEdit=false;
   reviewCache=[];
 
   $("loginPanel").classList.remove("hidden");
@@ -913,11 +669,7 @@ async function loadDashboard(){
     return;
   }
 
-  // Mantiene los IDs originales de Supabase y corrige solo la etiqueta visible.
-  departments=deptData.filter(d=>d.active!==false).map(d=>({
-    ...d,
-    name:/^normalizaci[oó]n$/i.test(String(d.name||"").trim())?"Normatividad":d.name
-  }));
+  departments=deptData.filter(d=>d.active!==false);
   $("loginPanel").classList.add("hidden");
   $("appPanel").classList.remove("hidden");
   $("usuarioInfo").textContent=
@@ -985,24 +737,6 @@ async function loadDashboard(){
 }
 
 async function populateAdminFilters(){
-  // Carga el selector del formulario de creación de empleados.
-  // Se reutilizan los departamentos activos ya obtenidos de Supabase.
-  const employeeDepartment=$("employeeDepartment");
-  if(employeeDepartment){
-    const previousValue=employeeDepartment.value;
-    employeeDepartment.replaceChildren(new Option("Selecciona un departamento",""));
-    departments.forEach(dept=>{
-      employeeDepartment.add(new Option(dept.name,String(dept.id)));
-    });
-    if(previousValue && departments.some(dept=>String(dept.id)===previousValue)){
-      employeeDepartment.value=previousValue;
-    }
-    employeeDepartment.disabled=!isAdmin() || departments.length===0;
-    if(isAdmin() && departments.length===0){
-      showEmployeeMessage("No hay departamentos activos disponibles para asignar.");
-    }
-  }
-
   const reportDepartment=$("reportDepartment");
   reportDepartment.replaceChildren();
 
@@ -1075,8 +809,6 @@ async function loadAdminActivities(){
   showReportMessage("");
   const list=$("activityList");
   list.replaceChildren();
-  const historyContainer=$("employeeHistoryList");
-  if(historyContainer)historyContainer.replaceChildren();
   list.textContent="Cargando actividades...";
   $("reportCount").textContent="";
 
@@ -1142,59 +874,6 @@ async function loadAdminActivities(){
   };
 }
 
-async function loadEmployeeHistory(){
-  if(!isAdmin())return;
-  const departmentId=$("reportDepartment").value;
-  const employeeId=$("reportEmployee").value;
-  const container=$("employeeHistoryList");
-  const activityList=$("activityList");
-  container.replaceChildren();
-  activityList.replaceChildren();
-  showReportMessage("");
-  if(employeeId==="all"){
-    showReportMessage("Primero selecciona un departamento y después un empleado para consultar su historial completo.");
-    return;
-  }
-  const employee=employeeCache.find(e=>e.id===employeeId);
-  const departmentName=departments.find(d=>String(d.id)===String(departmentId))?.name||"Departamento";
-  const heading=document.createElement("div");
-  heading.className="page-intro";
-  const headingText=document.createElement("div");
-  const kicker=document.createElement("div");kicker.className="kicker";kicker.textContent="Historial individual";
-  const title=document.createElement("h2");title.textContent=employee?.full_name||"Empleado seleccionado";
-  const subtitle=document.createElement("p");subtitle.className="muted";subtitle.textContent=`${departmentName} · Reportes semanales registrados`;
-  headingText.append(kicker,title,subtitle);heading.appendChild(headingText);container.appendChild(heading);
-  const status=document.createElement("p");status.className="muted";status.textContent="Cargando historial...";container.appendChild(status);
-  let query=db.from("activities").select("id,user_id,department_id,title,activity_date,activity_time,description,deadline_met,observations,status").eq("user_id",employeeId);
-  if(departmentId!=="all")query=query.eq("department_id",Number(departmentId));
-  const {data:activities,error}=await query.order("activity_date",{ascending:false}).order("activity_time",{ascending:false});
-  if(error){console.error("Error al consultar historial:",error);status.textContent=`No se pudo cargar el historial: ${error.message||"error de consulta"}`;return;}
-  if(!activities?.length){status.textContent="Este empleado todavía no tiene actividades registradas.";return;}
-  const {data:reviews, error:reviewError}=await db.from("report_reviews").select("employee_id,week_start,status,observations,reviewed_at").eq("employee_id",employeeId).order("week_start",{ascending:false});
-  if(reviewError)console.warn("No se pudieron cargar los estados históricos de revisión:",reviewError);
-  const byWeek=new Map();
-  for(const activity of activities){
-    const date=new Date(`${activity.activity_date}T12:00:00`);
-    const day=date.getDay();
-    date.setDate(date.getDate()-(day===0?6:day-1));
-    const weekStart=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-    if(!byWeek.has(weekStart))byWeek.set(weekStart,[]);
-    byWeek.get(weekStart).push(activity);
-  }
-  const names={[employeeId]:employee?.full_name||"Empleado"};
-  status.textContent=`${activities.length} actividades en ${byWeek.size} semana(s).`;
-  for(const [weekStart,weekActivities] of byWeek){
-    const card=document.createElement("section");card.className="history-week";
-    const title=document.createElement("h3");title.textContent=`Semana del ${weekStart}`;card.appendChild(title);
-    const review=(reviews||[]).find(r=>r.week_start===weekStart);
-    const meta=document.createElement("p");meta.className="history-meta";meta.textContent=`${weekActivities.length} actividad(es) · Estado: ${review?.status||REVIEW_PENDING}`;card.appendChild(meta);
-    if(review?.observations){const obs=document.createElement("p");obs.textContent=`Observaciones del administrador: ${review.observations}`;card.appendChild(obs);}
-    weekActivities.forEach(activity=>card.appendChild(renderActivity(activity,names,true)));
-    container.appendChild(card);
-  }
-  showReportMessage("Historial del empleado cargado correctamente.");
-}
-
 async function getProfileNames(ids){
   if(!ids.length)return {};
   const {data,error}=await db.from("profiles").select("id,full_name").in("id",ids);
@@ -1228,41 +907,6 @@ function renderActivity(activity,names={},admin=false){
   return article;
 }
 
-function clearActivityEditMode(){
-  editingActivityId=null;
-  $("activityForm").reset();
-  $("activityDate").value=localDate(new Date());
-  $("status").value="Pendiente";
-  if(!isAdmin()&&profile)$("department").value=String(profile.department_id);
-  $("saveBtn").textContent="Guardar actividad";
-  $("cancelEditBtn").classList.add("hidden");
-  $("editModeNotice").classList.add("hidden");
-  showFormMessage("");
-}
-
-function beginEditActivity(activity){
-  if(!currentUser||activity.user_id!==currentUser.id||!ownReportCanEdit){
-    showEmployeeMessage("Solo puedes corregir tus propias actividades cuando el reporte está en Reverificar.");
-    return;
-  }
-  editingActivityId=activity.id;
-  $("department").value=String(activity.department_id);
-  $("activityDate").value=activity.activity_date||"";
-  $("activityTime").value=activity.activity_time||"";
-  $("title").value=activity.title||"";
-  $("description").value=activity.description||"";
-  $("deadline").value=activity.deadline_met===null||activity.deadline_met===undefined?"":String(activity.deadline_met);
-  $("status").value=activity.status||"Pendiente";
-  $("observations").value=activity.observations||"";
-  $("saveBtn").textContent="Guardar corrección";
-  $("cancelEditBtn").classList.remove("hidden");
-  $("editModeNotice").classList.remove("hidden");
-  showFormMessage("Corrige los campos y guarda los cambios. Si Supabase bloquea la actualización, será necesario revisar la política UPDATE existente.");
-  setActiveView("activityFormPanel");
-}
-
-$("cancelEditBtn").addEventListener("click",clearActivityEditMode);
-
 async function loadOwnActivities(){
   const range=getWeekRange($("myReportWeek").value);
   const list=$("myActivityList");
@@ -1275,11 +919,6 @@ async function loadOwnActivities(){
 
   const [startDate,endDate]=range;
   ownReportActivities=[];
-  ownReportCanEdit=false;
-  const {data:reviewForEdit,error:reviewForEditError}=await db.from("report_reviews")
-    .select("status").eq("employee_id",currentUser.id).eq("week_start",startDate).maybeSingle();
-  if(reviewForEditError){ console.error("No se pudo comprobar el estado de edición:",reviewForEditError); }
-  ownReportCanEdit=reviewForEdit?.status===REVIEW_REVERIFY;
   list.textContent="Cargando tus actividades...";
   const {data,error}=await db.from("activities").select(`
     id,user_id,department_id,title,activity_date,activity_time,
@@ -1305,18 +944,7 @@ async function loadOwnActivities(){
     return;
   }
 
-  data.forEach(a=>{
-    const card=renderActivity(a,{},false);
-    if(ownReportCanEdit){
-      const actions=document.createElement("div");
-      actions.className="actions no-print";
-      const edit=document.createElement("button");
-      edit.type="button"; edit.className="primary"; edit.textContent="Corregir actividad";
-      edit.addEventListener("click",()=>beginEditActivity(a));
-      actions.appendChild(edit); card.appendChild(actions);
-    }
-    list.appendChild(card);
-  });
+  data.forEach(a=>list.appendChild(renderActivity(a,{},false)));
 }
 
 async function loadAdminReviews(activities,weekStart){
@@ -1383,8 +1011,7 @@ async function loadAdminReviews(activities,weekStart){
     statusSelect.append(
       new Option(REVIEW_PENDING,REVIEW_PENDING),
       new Option(REVIEW_ACCEPTED,REVIEW_ACCEPTED),
-      new Option(REVIEW_REJECTED,REVIEW_REJECTED),
-      new Option(REVIEW_REVERIFY,REVIEW_REVERIFY)
+      new Option(REVIEW_REJECTED,REVIEW_REJECTED)
     );
     statusSelect.value=existing?.status||REVIEW_PENDING;
     statusLabel.appendChild(statusSelect);
@@ -1408,12 +1035,12 @@ async function loadAdminReviews(activities,weekStart){
         return;
       }
       const status=statusSelect.value;
-      if(![REVIEW_PENDING,REVIEW_ACCEPTED,REVIEW_REJECTED,REVIEW_REVERIFY].includes(status)){
+      if(![REVIEW_PENDING,REVIEW_ACCEPTED,REVIEW_REJECTED].includes(status)){
         showMessage("Estado de revisión no válido.");
         return;
       }
-      if([REVIEW_REJECTED,REVIEW_REVERIFY].includes(status)&&!obs.value.trim()){
-        showMessage(status===REVIEW_REVERIFY?"Escribe las observaciones que indiquen qué debe verificarse nuevamente.":"Escribe las observaciones para explicar el rechazo.");
+      if(status===REVIEW_REJECTED&&!obs.value.trim()){
+        showMessage("Escribe las observaciones para explicar el rechazo.");
         obs.focus();
         return;
       }
@@ -1450,79 +1077,8 @@ async function loadAdminReviews(activities,weekStart){
   }
 }
 
-async function loadReopenWeeks(){
-  const container=$("reopenWeeksList");
-  if(!container||!currentUser||isAdmin())return;
-  container.replaceChildren();
-  const {data:activities,error:activityError}=await db.from("activities")
-    .select("activity_date")
-    .eq("user_id",currentUser.id)
-    .order("activity_date",{ascending:false})
-    .limit(1000);
-  if(activityError){
-    console.error("Error al consultar semanas de actividades:",activityError);
-    container.textContent="No se pudieron consultar tus semanas de actividades. Intenta actualizar la pantalla.";
-    return;
-  }
-  const {data:reviews,error:reviewsError}=await db.from("report_reviews")
-    .select("week_start,status,observations")
-    .eq("employee_id",currentUser.id)
-    .order("week_start",{ascending:false});
-  if(reviewsError){
-    console.error("Error al consultar revisiones para reapertura:",reviewsError);
-    container.textContent="No se pudieron consultar los estados de tus reportes. Intenta actualizar la pantalla.";
-    return;
-  }
-  const weekMap=new Map();
-  (activities||[]).forEach(a=>{
-    if(!a.activity_date)return;
-    const value=getISOWeekValueUTC(new Date(`${a.activity_date}T12:00:00Z`));
-    if(!weekMap.has(value))weekMap.set(value,{value,count:0,review:null});
-    weekMap.get(value).count++;
-  });
-  (reviews||[]).forEach(review=>{
-    const value=getISOWeekValueUTC(new Date(`${review.week_start}T12:00:00Z`));
-    if(!weekMap.has(value))weekMap.set(value,{value,count:0,review:null});
-    weekMap.get(value).review=review;
-  });
-  const weeks=[...weekMap.values()].sort((a,b)=>b.value.localeCompare(a.value));
-  if(!weeks.length){
-    container.textContent="Todavía no hay semanas con actividades o revisiones asociadas a tu cuenta.";
-    return;
-  }
-  const selected=$("reopenWeek").value;
-  weeks.forEach(item=>{
-    const range=getWeekRange(item.value);
-    const card=document.createElement("article");
-    card.className="reopen-week-card"+(item.value===selected?" selected":"");
-    const title=addText(card,"div",`Semana ${item.value.slice(-2)}, ${item.value.slice(0,4)}`);
-    title.className="week-title";
-    addText(card,"div",range?`${range[0]} al ${range[1]}`:item.value).className="week-meta";
-    addText(card,"div",`${item.count} ${item.count===1?"actividad registrada":"actividades registradas"}`).className="week-meta";
-    const status=item.review?.status||"Pendiente de revisión";
-    const statusLine=document.createElement("div");
-    statusLine.appendChild(document.createTextNode("Revisión: "));
-    statusLine.appendChild(statusPill(status));
-    card.appendChild(statusLine);
-    const button=document.createElement("button");
-    button.type="button";
-    button.className=item.value===selected?"primary":"secondary";
-    button.textContent=item.value===selected?"Semana seleccionada":"Seleccionar semana";
-    button.addEventListener("click",async()=>{
-      $("reopenWeek").value=item.value;
-      container.querySelectorAll(".reopen-week-card").forEach(c=>c.classList.remove("selected"));
-      card.classList.add("selected");
-      container.querySelectorAll(".reopen-week-card button").forEach(b=>{b.textContent="Seleccionar semana";b.className="secondary";});
-      button.textContent="Semana seleccionada";button.className="primary";
-      await loadEmployeeReviewAndRequests(false);
-    });
-    card.appendChild(button);
-    container.appendChild(card);
-  });
-}
-
-async function loadEmployeeReviewAndRequests(refreshWeeks=true){
-  if(refreshWeeks)await loadReopenWeeks();
+async function loadEmployeeReviewAndRequests(){
+  await loadReopenWeeks();
   const range=getWeekRange($("reopenWeek").value);
   $("myReviewStatus").replaceChildren();
   $("requestReopenBtn").disabled=true;
@@ -1557,14 +1113,110 @@ async function loadEmployeeReviewAndRequests(refreshWeeks=true){
     if(review.status===REVIEW_ACCEPTED){
       $("requestReopenBtn").disabled=false;
       $("reopenEligibility").textContent="Reporte aprobado: puedes enviar una solicitud. No se desbloqueará hasta que el administrador la apruebe.";
-    }else if(review.status===REVIEW_REVERIFY){
-      $("reopenEligibility").textContent="Este reporte está en Reverificar. Regresa a Mis reportes y pulsa Corregir actividad; no necesitas solicitar reapertura.";
     }else{
       $("reopenEligibility").textContent=`Estado actual: ${review.status}. Solo se puede solicitar reapertura de un reporte aprobado.`;
     }
   }
 
   await loadOwnReopenRequests();
+}
+
+async function loadReopenWeeks(){
+  const container=$("reopenWeeksList");
+  if(!container||!currentUser)return;
+  container.replaceChildren();
+  const loading=document.createElement("p");
+  loading.className="muted";
+  loading.textContent="Buscando semanas con actividades...";
+  container.appendChild(loading);
+
+  try{
+    const {data:activities,error:activityError}=await db.from("activities")
+      .select("activity_date")
+      .eq("user_id",currentUser.id)
+      .order("activity_date",{ascending:false})
+      .limit(2000);
+    if(activityError)throw activityError;
+
+    const weeks=new Map();
+    (activities||[]).forEach(item=>{
+      if(!item.activity_date)return;
+      const date=new Date(`${item.activity_date}T12:00:00`);
+      const weekValue=getISOWeekValue(date);
+      const range=getWeekRange(weekValue);
+      if(!range)return;
+      if(!weeks.has(weekValue))weeks.set(weekValue,{value:weekValue,start:range[0],end:range[1],count:0});
+      weeks.get(weekValue).count++;
+    });
+
+    const weekList=[...weeks.values()].sort((a,b)=>b.start.localeCompare(a.start));
+    let reviewsByWeek=new Map();
+    if(weekList.length){
+      const {data:reviews,error:reviewError}=await db.from("report_reviews")
+        .select("week_start,status,observations,reviewed_at")
+        .eq("employee_id",currentUser.id);
+      if(reviewError)throw reviewError;
+      reviewsByWeek=new Map((reviews||[]).map(review=>[review.week_start,review]));
+    }
+
+    container.replaceChildren();
+    if(!weekList.length){
+      const empty=document.createElement("p");
+      empty.className="muted";
+      empty.textContent="Todavía no hay actividades registradas en tus reportes semanales.";
+      container.appendChild(empty);
+      $("reopenWeek").value="";
+      $("requestReopenBtn").disabled=true;
+      $("reopenEligibility").textContent="Registra actividades para que aparezcan aquí las semanas disponibles.";
+      return;
+    }
+
+    weekList.forEach(week=>{
+      const review=reviewsByWeek.get(week.start);
+      const accepted=review?.status===REVIEW_ACCEPTED;
+      const card=document.createElement("article");
+      card.className="request-card";
+      card.style.borderLeftColor=accepted?"#16803c":"#94a3b8";
+      const heading=document.createElement("div");
+      heading.style.display="flex";
+      heading.style.flexWrap="wrap";
+      heading.style.justifyContent="space-between";
+      heading.style.gap="8px";
+      const title=document.createElement("strong");
+      title.textContent=`Semana ${week.value.split("-W")[1]} de ${week.value.split("-W")[0]}`;
+      heading.appendChild(title);
+      const status=document.createElement("span");
+      status.appendChild(statusPill(review?.status||REVIEW_PENDING));
+      heading.appendChild(status);
+      card.appendChild(heading);
+      addField(card,"Periodo",`${week.start} al ${week.end}`);
+      addField(card,"Actividades registradas",String(week.count));
+      if(review?.observations)addField(card,"Observación del administrador",review.observations);
+      const selectButton=document.createElement("button");
+      selectButton.type="button";
+      selectButton.className=accepted?"primary":"secondary";
+      selectButton.textContent=accepted?"Seleccionar esta semana":"Ver semana";
+      selectButton.addEventListener("click",async()=>{
+        $("reopenWeek").value=week.value;
+        await loadEmployeeReviewAndRequests();
+        $("reopenForm").scrollIntoView({behavior:"smooth",block:"start"});
+      });
+      card.appendChild(selectButton);
+      container.appendChild(card);
+    });
+
+    const currentValue=$("reopenWeek").value;
+    if(!currentValue||!weeks.has(currentValue)){
+      $("reopenWeek").value=weekList[0].value;
+    }
+  }catch(error){
+    console.error("Error al cargar semanas para reapertura:",error);
+    container.replaceChildren();
+    const message=document.createElement("p");
+    message.className="message";
+    message.textContent="No se pudieron cargar tus semanas. Revisa la consola del navegador para identificar el error de consulta.";
+    container.appendChild(message);
+  }
 }
 
 async function loadOwnReopenRequests(){
@@ -1686,20 +1338,9 @@ async function loadAdminRequests(){
 
   container.replaceChildren();
   if(!data||!data.length){
-    const empty=document.createElement("div");
-    empty.className="notice-card";
-    addText(empty,"strong","Todavía no hay solicitudes de reapertura");
-    addText(empty,"p","Cuando un empleado envíe una solicitud para un reporte aceptado, aparecerá aquí para que puedas aprobarla o rechazarla. Esto no significa que haya un error.");
-    container.appendChild(empty);
+    container.textContent="No hay solicitudes registradas.";
     return;
   }
-  data.sort((a,b)=>Number(b.status==="Pendiente")-Number(a.status==="Pendiente") || new Date(b.created_at||0)-new Date(a.created_at||0));
-  const summary=document.createElement("div");
-  summary.className="notice-card";
-  const pendingCount=data.filter(r=>r.status==="Pendiente").length;
-  addText(summary,"strong",`${pendingCount} solicitud(es) pendiente(s) · ${data.length-pendingCount} resuelta(s)`);
-  addText(summary,"p","Las pendientes aparecen primero. Aprobar permite continuar con la corrección autorizada; rechazar mantiene el reporte cerrado.");
-  container.appendChild(summary);
 
   const ids=[...new Set(data.map(r=>r.employee_id).filter(Boolean))];
   const names=await getProfileNames(ids);
@@ -2027,19 +1668,9 @@ function setActiveView(viewId){
 
 document.querySelectorAll(".nav-button").forEach(button=>{
   button.addEventListener("click",async()=>{
-    const moduleName=(button.textContent||"Módulo").replace(/^[^\p{L}\p{N}]*/u,"").trim();
-    showHtcLoading("Abriendo " + moduleName);
-    const minimumAnimation=new Promise(resolve=>{htcLoadingTimer=setTimeout(resolve,420);});
-    try{
-      await minimumAnimation;
-      setActiveView(button.dataset.view);
-      if(button.dataset.view==="employeeReopenPanel"&&!isAdmin()&&profile){
-        await loadEmployeeReviewAndRequests();
-      }
-    }catch(error){
-      console.error("No se pudo abrir el módulo:",error);
-    }finally{
-      hideHtcLoading();
+    setActiveView(button.dataset.view);
+    if(button.dataset.view==="employeeReopenPanel"&&!isAdmin()&&profile){
+      await loadEmployeeReviewAndRequests();
     }
   });
 });
@@ -2098,35 +1729,10 @@ $("removeInstitutionLogo").addEventListener("click",()=>{
 });
 loadInstitutionLogo();
 
-let htcLoadingTimer=null;
-function showHtcLoading(message="Cargando módulo..."){
-  const overlay=$("htcLoadingOverlay");
-  if(!overlay)return;
-  $("htcLoaderMessage").textContent=message;
-  const source=$("loginLogo")?.src;
-  const loaderLogo=$("htcLoaderLogo"),monogram=$("htcLoaderMonogram");
-  if(source){loaderLogo.src=source;loaderLogo.classList.remove("hidden");monogram.classList.add("hidden");}
-  else{loaderLogo.removeAttribute("src");loaderLogo.classList.add("hidden");monogram.classList.remove("hidden");}
-  overlay.classList.remove("is-hidden");overlay.setAttribute("aria-hidden","false");document.body.classList.add("htc-is-loading");
-}
-function hideHtcLoading(){
-  const overlay=$("htcLoadingOverlay");
-  if(!overlay)return;
-  overlay.classList.add("is-hidden");overlay.setAttribute("aria-hidden","true");document.body.classList.remove("htc-is-loading");
-  if(htcLoadingTimer){clearTimeout(htcLoadingTimer);htcLoadingTimer=null;}
-}
-
-// Pantalla de bienvenida al abrir el sitio, antes de mostrar el inicio de sesión.
-showHtcLoading("Bienvenido a Human Test Center · Preparando tu acceso");
-htcLoadingTimer=setTimeout(()=>{
-  hideHtcLoading();
-},1600);
-
 $("loginForm").addEventListener("submit",async event=>{
   event.preventDefault();
   $("loginBtn").disabled=true;
   showMessage("Verificando acceso...");
-  showHtcLoading("Verificando tus credenciales de acceso");
 
   try{
     const {error}=await db.auth.signInWithPassword({
@@ -2143,7 +1749,6 @@ $("loginForm").addEventListener("submit",async event=>{
     showMessage("No se pudo conectar con Supabase.");
   }finally{
     $("loginBtn").disabled=false;
-    hideHtcLoading();
   }
 });
 
@@ -2178,61 +1783,32 @@ $("activityForm").addEventListener("submit",async event=>{
       activity_date:$("activityDate").value,
       activity_time:$("activityTime").value||null,
       description:$("description").value.trim(),
-      deadline_met:deadlineValue===""?null:deadlineValue==="true",
-      observations:$("observations").value.trim(),
+      deadline_met:deadlineValue===""?null:de
       status:$("status").value,
       updated_at:new Date().toISOString()
     };
 
-    let saveError=null;
-    if(editingActivityId){
-      if(isAdmin()||!ownReportCanEdit){
-        showFormMessage("La edición solo está habilitada para el empleado propietario cuando el reporte está en Reverificar.");
-        return;
-      }
-      const result=await db.from("activities").update(activity)
-        .eq("id",editingActivityId).eq("user_id",currentUser.id).select("id").maybeSingle();
-      saveError=result.error;
-      if(!saveError&&!result.data){
-        showFormMessage("No se actualizó la actividad. Supabase puede estar bloqueando UPDATE por las políticas RLS actuales.");
-        return;
-      }
-    }else{
-      const result=await db.from("activities").insert(activity);
-      saveError=result.error;
-    }
-    if(saveError){
-      console.error("Error al guardar actividad:",saveError);
-      showFormMessage(saveError.code==="42501"
-        ?"Supabase bloqueó el cambio por permisos o políticas RLS. No se modificaron las políticas automáticamente."
-        :"No se pudo guardar la actividad. Revisa el error de permisos en la consola del navegador.");
+    const {error}=await db.from("activities").insert(activity);
+    if(error){
+      console.error("Error al guardar actividad:",error);
+      showFormMessage(error.code==="42501"
+        ?"Supabase bloqueó el registro. Si la semana está aceptada, solicita su reapertura."
+        :"No se pudo guardar la actividad. Verifica los permisos de Supabase.");
       return;
     }
 
-    const wasEdit=Boolean(editingActivityId);
-    showFormMessage(wasEdit?"Corrección guardada correctamente.":"Actividad guardada correctamente.");
-    if(wasEdit)clearActivityEditMode();
-    else{
-      $("activityForm").reset();
-      $("activityDate").value=localDate(new Date());
-      $("status").value="Pendiente";
-      if(!isAdmin())$("department").value=String(profile.department_id);
-    }
+    showFormMessage("Actividad guardada correctamente.");
+    $("activityForm").reset();
+    $("activityDate").value=localDate(new Date());
+    $("status").value="Pendiente";
+    if(!isAdmin())$("department").value=String(profile.department_id);
     await loadActivities();
-    if(!isAdmin())await loadOwnActivities();
   }catch(error){
     console.error(error);
     showFormMessage("Ocurrió un error al guardar la actividad.");
   }finally{
     $("saveBtn").disabled=false;
   }
-});
-
-$("historyBtn").addEventListener("click",async()=>{
-  const button=$("historyBtn");button.disabled=true;
-  try{await loadEmployeeHistory();}
-  catch(error){console.error("Error inesperado al cargar historial:",error);showReportMessage("Ocurrió un error al cargar el historial del empleado.");}
-  finally{button.disabled=false;}
 });
 
 $("reportDepartment").addEventListener("change",()=>{
@@ -2442,4 +2018,3 @@ loadDashboard().catch(error=>{
 </script>
 </body>
 </html>
-
