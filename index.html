@@ -1,5 +1,4 @@
-adlineValue==="true",
-      observations:$("observations").value.trim(),<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1783,7 +1782,8 @@ $("activityForm").addEventListener("submit",async event=>{
       activity_date:$("activityDate").value,
       activity_time:$("activityTime").value||null,
       description:$("description").value.trim(),
-      deadline_met:deadlineValue===""?null:de
+      deadline_met:deadlineValue===""?null:deadlineValue==="true",
+      observations:$("observations").value.trim(),
       status:$("status").value,
       updated_at:new Date().toISOString()
     };
