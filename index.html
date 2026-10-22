@@ -76,7 +76,23 @@ button.success{background:var(--green);color:#fff}
 .activity{border-left:4px solid var(--blue)}
 .activity strong{color:var(--navy);font-size:16px}
 .review-card{border-left:5px solid var(--blue);background:#fbfdff}
-.request-card{border-left:5px solid #d97706;background:#fffdf8}
+.request-card{position:relative;border:1px solid #dbe5f0;border-left:5px solid #94a3b8;background:linear-gradient(135deg,#fff 0%,#f9fbff 100%);border-radius:16px;padding:21px 22px;margin-top:14px;box-shadow:0 5px 18px #102a4309;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.request-card:hover{transform:translateY(-2px);box-shadow:0 10px 25px #102a4314}
+.request-card.request-pendiente{border-left-color:#d97706;background:linear-gradient(135deg,#fffdf7 0%,#fff 75%)}
+.request-card.request-aprobada{border-left-color:#16a34a;background:linear-gradient(135deg,#f5fff8 0%,#fff 75%)}
+.request-card.request-rechazada{border-left-color:#dc2626;background:linear-gradient(135deg,#fff7f7 0%,#fff 75%)}
+.request-card h4{font-size:16px;line-height:1.4;color:var(--navy);margin:0 0 14px;font-weight:850}
+.request-card p{margin:10px 0;line-height:1.55;color:#334155}
+.request-card p strong{color:#102a43}
+.request-card .pill{padding:5px 11px;letter-spacing:.1px}
+.request-card .pill.accepted{background:#dcfce7;color:#166534}
+.request-card .pill.rejected{background:#fee2e2;color:#991b1b}
+.request-card .pill.pending{background:#fef3c7;color:#92400e}
+.request-card label{display:block;font-weight:750;margin-top:16px;color:var(--navy)}
+.request-card label textarea{display:block;width:100%;margin-top:7px;min-height:88px;border:1px solid #cbd5e1;border-radius:10px;padding:11px;background:#fff}
+.request-card .actions{margin-top:12px}
+.request-card .actions button{border-radius:9px;padding:10px 14px}
+@media(max-width:600px){.request-card{padding:16px;border-radius:13px}.request-card h4{font-size:15px}}
 .audit-card{font-size:14px;background:#fbfdff}
 .activity p,.employee-row p,.review-card p,.request-card p,.audit-card p{margin:8px 0}
 .pill{display:inline-block;padding:5px 10px;border-radius:30px;background:#e2e8f0;font-size:12px;font-weight:800}
@@ -1377,12 +1393,17 @@ async function loadAdminRequests(){
 
   data.forEach(request=>{
     const card=document.createElement("article");
-    card.className="request-card";
+    const normalizedStatus=String(request.status||"Pendiente").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+    card.className="request-card request-"+(normalizedStatus.includes("aprob")?"aprobada":normalizedStatus.includes("rechaz")?"rechazada":"pendiente");
     addText(card,"h4",names[request.employee_id]||"Empleado sin nombre");
     addField(card,"Semana",request.week_start);
     const statusLine=document.createElement("p");
     statusLine.appendChild(document.createTextNode("Estado: "));
-    statusLine.appendChild(statusPill(request.status));
+    const requestStatusPill=statusPill(request.status);
+    if(normalizedStatus.includes("aprob"))requestStatusPill.className="pill accepted";
+    else if(normalizedStatus.includes("rechaz"))requestStatusPill.className="pill rejected";
+    else requestStatusPill.className="pill pending";
+    statusLine.appendChild(requestStatusPill);
     card.appendChild(statusLine);
     addField(card,"Motivo",request.reason);
     if(request.created_at)addField(card,"Fecha de solicitud",new Date(request.created_at).toLocaleString("es-MX"));
